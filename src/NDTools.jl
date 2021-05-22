@@ -1,6 +1,10 @@
 module NDTools
-using Base.Iterators
+using Base.Iterators, PaddedViews
+export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
+       apply_tuple_list, reorient, select_region
+export get_complex_datatype, center_position
 
+const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
 # Functions from ROIViews:
 
@@ -143,6 +147,61 @@ function single_dim_size(dim::Int,dim_size::Int)
     Base.setindex(Tuple(ones(Int, dim)),dim_size,dim)
 end
 
+"""
+    reorient(vec, dim)
+reorients a 1D vector `vec` along dimension `dim`.
+"""
+function reorient(vec, dim::Int)
+    reshape(vec, single_dim_size(dim, length(vec)))
+end
+
+"""
+    collect_dim(col, dim::Int)
+ collects a collection `col` and reorients it into direction `dim`.
+"""
+function collect_dim(col, dim::Int)
+    reorient(collect(col), dim)
+end
+
+# These are the type promotion rules, taken from float.jl but written in terms of types
+# see also 
+promote_type()
+default_type(::Type{Bool}, def_T)    = def_T
+default_type(::Type{Int8}, def_T)    = def_T
+default_type(::Type{Int16}, def_T)   = def_T
+default_type(::Type{Int32}, def_T)   = def_T
+default_type(::Type{Int64}, def_T)   = def_T # LOSSY
+default_type(::Type{Int128}, def_T)  = def_T # LOSSY
+default_type(::Type{UInt8}, def_T)   = def_T
+default_type(::Type{UInt16}, def_T)  = def_T
+default_type(::Type{UInt32}, def_T)  = def_T
+default_type(::Type{UInt64}, def_T)  = def_T # LOSSY
+default_type(::Type{UInt128}, def_T) = def_T # LOSSY
+default_type(::Type{T}, def_T) where{T} = T # all other types remain to be the same
+
+# Functions from scaling_offset_types in IndexFunArrays
+
+
+
+function apply_tuple_list(f, t1,t2)  # applies a two-argument function to tubles and iterables of tuples
+    return f(t1,t2)
+end
+
+function apply_tuple_list(f, t1,t2::IterType)
+    return Tuple([f(t1,a2) for a2 in t2])
+end
+
+function apply_tuple_list(f, t1::IterType,t2)
+    res= Tuple([f(a1,t2) for a1 in t1])
+    return res
+end
+
+function apply_tuple_list(f, t1::IterType,t2::IterType)
+    return Tuple([f(a[1],a[2]) for a in zip(t1,t2)])
+end
+
+
+## Functions from FourierTools utils:
 
 """
     selectsizes(x::AbstractArray, dim; keep_dims=true)
@@ -187,77 +246,6 @@ end
 function selectsizes(x::AbstractArray, dim::Integer; keep_dims=true)
     selectsizes(x, Tuple(dim), keep_dims=keep_dims)
 end
-
-
-# These are the type promotion rules, taken from float.jl but written in terms of types
-# see also 
-promote_type()
-default_type(::Type{Bool}, def_T)    = def_T
-default_type(::Type{Int8}, def_T)    = def_T
-default_type(::Type{Int16}, def_T)   = def_T
-default_type(::Type{Int32}, def_T)   = def_T
-default_type(::Type{Int64}, def_T)   = def_T # LOSSY
-default_type(::Type{Int128}, def_T)  = def_T # LOSSY
-default_type(::Type{UInt8}, def_T)   = def_T
-default_type(::Type{UInt16}, def_T)  = def_T
-default_type(::Type{UInt32}, def_T)  = def_T
-default_type(::Type{UInt64}, def_T)  = def_T # LOSSY
-default_type(::Type{UInt128}, def_T) = def_T # LOSSY
-default_type(::Type{T}, def_T) where{T} = T # all other types remain to be the same
-
-# Functions from scaling_offset_types in IndexFunArrays
-
-
-
-function apply_tuple_list(f, t1,t2)  # applies a two-argument function to tubles and iterables of tuples
-    return f(t1,t2)
-end
-
-function apply_tuple_list(f, t1,t2::IterType)
-    return Tuple([f(t1,a2) for a2 in t2])
-end
-
-function apply_tuple_list(f, t1::IterType,t2)
-    res= Tuple([f(a1,t2) for a1 in t1])
-    return res
-end
-
-function apply_tuple_list(f, t1::IterType,t2::IterType)
-    return Tuple([f(a[1],a[2]) for a in zip(t1,t2)])
-end
-
-
-## Functions from FourierTools utils:
-
-"""
-    selectsizes(x, dism; keep_dims=true)
-
-Select the sizes of `x` for all `dims`
-If `keep_dims=true` the non-selected dimensions are
-returned as 1.
-
-# Examples
-```jldoctest
-julia> FourierTools.selectsizes(randn((4,3,2)), (2,3))
-(1, 3, 2)
-
-julia> FourierTools.selectsizes(randn((4,3,2)), (2,3), keep_dims=false)
-(3, 2)
-```
-
-"""
-function selectsizes(x::AbstractArray{T},dims::NTuple{N,Int};
-                    keep_dims=true) where{T,N}
-    if ~keep_dims
-        return map(n->size(x,n),dims)
-    end
-    sz = ones(Int, ndims(x))
-    for n in dims
-        sz[n] = size(x,n) 
-    end
-    return Tuple(sz)
-end 
-
 
 
 """
@@ -346,5 +334,88 @@ function expanddims(x, ::Val{N}) where N
     return reshape(x, (size(x)..., ntuple(x -> 1, (N - ndims(x)))...))
 end
 
+function center_position(field)
+    (size(field) .÷ 2).+1
+end
+
+"""
+    ft_center_diff(s [, dims])
+
+Calculates how much each dimension must be shifted that the
+center frequency is at the Fourier center.
+This if for a normal `fft`
+"""
+function ft_center_diff(s::NTuple{N, T}, dims=ntuple(identity, Val(N))) where {N, T}
+    ntuple(i -> i ∈ dims ?  s[i] ÷ 2 : 0 , N)
+end
+
+
+"""
+    select_region(mat,new_size)
+
+performs the necessary Fourier-space operations of resampling
+in the space of ft (meaning the already circshifted version of fft).
+
+`new_size`.
+The size of the array view after the operation finished. 
+
+`center`.
+Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
+# Examples
+```jldoctest
+julia> using FFTW, FourierTools
+
+julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
+7×7 PaddedView(0.0, OffsetArray(::Matrix{Float64}, 4:6, 2:4), (Base.OneTo(7), Base.OneTo(7))) with eltype Float64:
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  1.0  1.0  1.0  0.0  0.0  0.0
+ 0.0  1.0  1.0  1.0  0.0  0.0  0.0
+ 0.0  1.0  1.0  1.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0
+```
+"""
+function select_region(mat; new_size=size(mat), center=ft_center_diff(size(mat)).+1)
+    oldcenter = ft_center_diff(new_size).+1
+    MutablePaddedView(PaddedView(0,mat,new_size, oldcenter .- center.+1));
+end
+
+struct MutablePaddedView{T,N,I,A} <: AbstractArray{T,N}
+    data::PaddedView{T,N,I,A}
+end
+
+Base.size(A::MutablePaddedView) = size(A.data)
+# Base.ndims(A::MutablePaddedView) = ndims(A.data)
+
+# The change below makes select_region into a writable region
+Base.@propagate_inbounds function Base.setindex!(A::MutablePaddedView{T,N}, v, pos::Vararg{Int,N}) where {T,N}
+    @boundscheck checkbounds(A.data, pos...)
+    if Base.checkbounds(Bool, A.data.data, pos...)
+        return setindex!(A.data.data, v, pos... )
+    else
+        return A.data.fillvalue
+    end
+end
+
+Base.@propagate_inbounds function Base.getindex(A::MutablePaddedView{T,N}, pos::Vararg{Int,N}) where {T,N}
+    getindex(A.data, pos...)
+end
+
+"""
+    get_complex_datatype(x)
+    returns the complex-valued datatyp which encompasses the eltype
+Examples:
+```jdoctest
+julia> get_complex_datatype([1f0,2f0,3f0])
+ComplexF32 (alias for Complex{Float32})
+
+julia> get_complex_datatype(22.2)
+ComplexF64 (alias for Complex{Float64})
+```
+"""
+get_complex_datatype(x :: Number) = Complex{typeof(x)}
+get_complex_datatype(x :: Complex ) = typeof(x)
+get_complex_datatype(x :: AbstractArray) = get_complex_datatype(eltype(x)(0))
 
 end # module

@@ -1,0 +1,26 @@
+# This file is machine-generated - editing it directly is not advised
+
+[[Adapt]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "f1b523983a58802c4695851926203b36e28f09db"
+uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
+version = "3.3.0"
+
+[[Libdl]]
+uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+
+[[LinearAlgebra]]
+deps = ["Libdl"]
+uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
+[[OffsetArrays]]
+deps = ["Adapt"]
+git-tree-sha1 = "47b443d2ccc8297a4c538f55f8fd828ad58599ab"
+uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+version = "1.8.0"
+
+[[PaddedViews]]
+deps = ["OffsetArrays"]
+git-tree-sha1 = "0fa5e78929aebc3f6b56e1a88cf505bb00a354c4"
+uuid = "5432bcbf-9aad-5242-b902-cca2824c8663"
+version = "0.5.8"
