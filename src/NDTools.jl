@@ -2,7 +2,7 @@ module NDTools
 using Base.Iterators, PaddedViews
 export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
        apply_tuple_list, reorient, select_region
-export get_complex_datatype, center_position
+export get_complex_datatype, center_position, pack
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -417,5 +417,48 @@ ComplexF64 (alias for Complex{Float64})
 get_complex_datatype(x :: Number) = Complex{typeof(x)}
 get_complex_datatype(x :: Complex ) = typeof(x)
 get_complex_datatype(x :: AbstractArray) = get_complex_datatype(eltype(x)(0))
+
+
+"""
+    pack(myTuple::Tuple, do_fit)
+    this packs a tuple of values into a vector which is normalized per direction and returns an unpack function which reverts this.
+    This tool is useful for fit routines.
+
+returns the packed tuples (with a position being true in do_fit) as a vector and the unpack algorithm as a closure.
+"""
+function pack(myTuple::Tuple, do_fit; rel_scale=1.0)
+    scales = []
+    vec = []
+    lengths = []
+    for (t,f) in zip(myTuple,do_fit)
+        scale = sum(t)/length(t) .* rel_scale
+        if f
+            push!(scales, scale)
+            vec = cat(vec, t ./ scale, dims=1)
+            push!(lengths, length(t))
+        else
+            push!(scales, t)
+            push!(lengths, length(t))
+        end
+    end
+
+    function unpack(vec)
+        res = ()
+        pos = 1
+        for (l,s,f) in zip(lengths,scales, do_fit)
+            if f
+                vals = vec[pos:pos+l-1] .* s
+                pos += l
+            else
+                vals = s
+            end
+            res = (res..., vals)
+        end
+        return res
+    end
+    
+    return Vector{Float64}(vec), unpack # Vector{Int}(lengths), Vector{Float64}(scales) 
+end
+
 
 end # module
