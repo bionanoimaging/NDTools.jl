@@ -3,6 +3,7 @@ using Base.Iterators, PaddedViews
 export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
        apply_tuple_list, reorient, select_region
 export get_complex_datatype, center_position, pack
+export soft_theta, exp_decay, multi_exp_decay
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -459,6 +460,32 @@ function pack(myTuple::Tuple, do_fit; rel_scale=1.0)
     
     return Vector{Float64}(vec), unpack # Vector{Int}(lengths), Vector{Float64}(scales) 
 end
+
+"""
+    soft_theta(val, eps=0.1) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
+    this is a version of the theta function that uses a soft threshold and is differentialble.
+val: value to compare with zero
+eps: hardness of the step function (spanning from -eps to eps)
+"""
+soft_theta(val, eps=0.01) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
+
+"""
+    exp_decay(t,τ, eps=0.1) 
+    an exponential decay starting at zero and using a soft threshold.
+    Note that this function can be applied to multiple decay times τ simulataneously, yielding multiple decays stacked along the second dimension
+"""
+exp_decay(t,τ, eps=0.01) = soft_theta.(t,eps) .* exp.( - (t ./ transpose(τ)))
+
+
+"""
+    multi_exp_decay(t,amps, τs, eps=0.1) 
+    a sum of exponential decays starting at t==zero and using a soft threshold.
+t: time series to apply this to
+amps: individual amplitudes as a vector
+τs : individual lifetimes as a vector
+eps: width of the soft edge
+"""
+multi_exp_decay(t, amps, τs, eps=0.01) = sum(transpose(amps).*exp_decay(t, τs, eps), dims=2)[:,1] 
 
 
 end # module
