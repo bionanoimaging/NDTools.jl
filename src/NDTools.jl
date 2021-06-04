@@ -1,9 +1,9 @@
 module NDTools
-using Base.Iterators, PaddedViews
+using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays
 export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
        apply_tuple_list, reorient, select_region
 export get_complex_datatype, center_position, pack
-export soft_theta, exp_decay, multi_exp_decay
+export soft_theta, exp_decay, multi_exp_decay, soft_delta
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -427,17 +427,21 @@ get_complex_datatype(x :: AbstractArray) = get_complex_datatype(eltype(x)(0))
 
 returns the packed tuples (with a position being true in do_fit) as a vector and the unpack algorithm as a closure.
 """
-function pack(myTuple::Tuple, do_fit; rel_scale=1.0)
+function pack(myTuple::Tuple, do_fit; rel_scale=nothing, dtype=Float64)
     scales = []
-    vec = []
-    lengths = []
+    vec = dtype[]
+    lengths = Int[]
     for (t,f) in zip(myTuple,do_fit)
-        scale = sum(t)/length(t) .* rel_scale
+        if !isnothing(rel_scale)
+            scale = sum(t)/length(t) .* rel_scale
+        else
+            scale = 1.0
+        end
         if f
             push!(scales, scale)
             vec = cat(vec, t ./ scale, dims=1)
             push!(lengths, length(t))
-        else
+        else # save the constant
             push!(scales, t)
             push!(lengths, length(t))
         end
@@ -463,11 +467,20 @@ end
 
 """
     soft_theta(val, eps=0.1) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
-    this is a version of the theta function that uses a soft threshold and is differentialble.
+    this is a version of the theta function that uses a soft transition and is differentialble.
 val: value to compare with zero
 eps: hardness of the step function (spanning from -eps to eps)
 """
-soft_theta(val, eps=0.01) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
+soft_theta(val, eps=0.01) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos.((val .+ eps).*(pi/(2*eps))))./2.0) # to make the threshold differentiable
+
+"""
+    soft_delta(val, eps=0.1) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
+    this is a smooth version of the theta function that uses a soft peak and is differentialble.
+    The sum is not normalized but the value at val is one.
+val: value to compare with zero
+eps: hardness of the step function (spanning from -eps to eps)
+"""
+soft_delta(val, eps=0.01) = (abs2.(val) .> abs2.(eps)) ? 0.0 : (1.0 .+ cos.(val.*(pi/eps)))./2.0 # to make the threshold differentiable
 
 """
     exp_decay(t,τ, eps=0.1) 
@@ -487,5 +500,41 @@ eps: width of the soft edge
 """
 multi_exp_decay(t, amps, τs, eps=0.01) = sum(transpose(amps).*exp_decay(t, τs, eps), dims=2)[:,1] 
 
+"""
+    radial_mean(data; maxbin=nothing, bin_step=nothing, pixelsize=nothing)
+calculates the radial mean of a dataset `data`.
+returns a tuple of the radial_mean and the bin_centers.
+Arguments:
+data: data to radially average
+maxbin: a maximum bin value
+bin_step: 
+"""
+function radial_mean(data; nbins=nothing, bin_step=nothing, offset=CtrFT, scale=nothing)
+    if isnothing(scale)
+        scale=Tuple(ones(Int,ndims(img)))
+    end
+    if isnothing(bin_step)
+        bin_step=maximum(scale)
+    end
+    
+    idx = round.(Int, rr(size(data), offset=offset, scale=scale./bin_step)) .+ 1
+    if isnothing(nbins)
+        nbins = maximum(idx)
+    else
+        idx[idx.>nbins] .= nbins
+    end
+
+    bincenters = bin_step .* collect(0.5:nbins-0.5)
+
+    myevents = zeros(Float64, nbins)
+    mysum = zeros(Float64, nbins)
+    idxlist = idx[:]
+    v = @view mysum[idxlist]
+    v .+= data[:]
+    v = @view myevents[idxlist]
+    v .+= 1
+    myevents[myevents .== 0] .= 1
+    return mysum ./ myevents, bincenters
+end
 
 end # module
