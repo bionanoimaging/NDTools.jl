@@ -3,7 +3,7 @@ using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays
 export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
        apply_tuple_list, reorient, select_region
 export get_complex_datatype, center_position, pack
-export soft_theta, exp_decay, multi_exp_decay, soft_delta
+export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -511,7 +511,7 @@ bin_step:
 """
 function radial_mean(data; nbins=nothing, bin_step=nothing, offset=CtrFT, scale=nothing)
     if isnothing(scale)
-        scale=Tuple(ones(Int,ndims(img)))
+        scale=Tuple(ones(Int,ndims(data)))
     end
     if isnothing(bin_step)
         bin_step=maximum(scale)
