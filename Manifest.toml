@@ -6,6 +6,12 @@ git-tree-sha1 = "f1b523983a58802c4695851926203b36e28f09db"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 version = "3.3.0"
 
+[[IndexFunArrays]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "debb7f777bf47f8a4aee6d48c505ecc68e0294f5"
+uuid = "613c443e-d742-454e-bfc6-1d7f8dd76566"
+version = "0.1.7"
+
 [[Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
