@@ -4,4 +4,5 @@ authors = ["rheintzmann <heintzmann@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
