@@ -1,9 +1,9 @@
 module NDTools
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays
 export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
-       apply_tuple_list, reorient, select_region
+       apply_tuple_list, reorient, select_region, single_dim_size
 export get_complex_datatype, center_position, pack
-export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean
+export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -128,9 +128,9 @@ end
 # Functions for IndexFunArrays.utils
 
 """
-    single_dim_size(dim::Int,dim_size::Int)
+    single_dim_size(dim::Int,dim_size::Int, tdim=dim)
 
-Returns a tuple (length `dim`) of singleton sizes except at the final position `dim`, which contains `dim_size`
+Returns a tuple (length `tdim`, which by default is dim) of singleton sizes except at the final position `dim`, which contains `dim_size`
 
 # Example
 ```jldoctest
@@ -144,8 +144,8 @@ julia> IndexFunArrays.single_dim_size(2, 5)
 (1, 5)
 ```
 """
-function single_dim_size(dim::Int,dim_size::Int)
-    Base.setindex(Tuple(ones(Int, dim)),dim_size,dim)
+function single_dim_size(dim::Int,dim_size::Int,tdim=dim)
+    Base.setindex(Tuple(ones(Int, tdim)),dim_size,dim)
 end
 
 """
@@ -162,6 +162,15 @@ end
 """
 function collect_dim(col, dim::Int)
     reorient(collect(col), dim)
+end
+
+"""
+    linear_index(pos, sz)
+    converts a tuble (pos) to a linear index using the size (sz).
+"""
+function linear_index(pos, sz)
+    factors = (1, cumprod(sz[1:end-1])...)
+    sum((pos.-1) .* factors)+1
 end
 
 # These are the type promotion rules, taken from float.jl but written in terms of types
