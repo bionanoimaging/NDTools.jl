@@ -11,3 +11,15 @@ A lightweight package for utility functions for working with multi-dimensional d
 sizes, midpoints etc. of Multidimensional data.
 
 It also provides functions such as `select_region` which automatically deal with padding or `radial_mean` which averages along constant distances form the center.
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-pink.svg
+[docs-dev-url]: https://RainerHeintzmann.github.io/NDTools.jl/dev/
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-darkgreen.svg
+[docs-stable-url]: https://RainerHeintzmann.github.io/NDTools.jl/stable/
+
+[CI-img]: https://github.com/RainerHeintzmann/NDTools.jl/actions/workflows/ci.yml/badge.svg
+[CI-url]: https://github.com/RainerHeintzmann/NDTools.jl/actions/workflows/ci.yml
+
+[codecov-img]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl/branch/main/graph/badge.svg?token=6XWI1M1MPB
+[codecov-url]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl
