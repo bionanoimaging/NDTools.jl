@@ -1,12 +1,12 @@
 # NDTools.jl
 
 
-
 | **Documentation**                       | **Build Status**                          | **Code Coverage**               |
 |:---------------------------------------:|:-----------------------------------------:|:-------------------------------:|
 | [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][CI-img]][CI-url] | [![][codecov-img]][codecov-url] |
 
 
+# Features
 A lightweight package for utility functions for working with multi-dimensional data. It provides efficient versions of dealing with
 sizes, midpoints etc. of Multidimensional data.
 
