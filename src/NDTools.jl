@@ -1,6 +1,6 @@
 module NDTools
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays
-export collect_dim, selectdim, selectsizes, expand_add, expand_size, expand_dims, 
+export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dims, 
        apply_tuple_list, reorient, select_region, single_dim_size
 export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
@@ -271,7 +271,7 @@ end
 ## Functions from FourierTools utils:
 
 """
-    selectsizes(x::AbstractArray, dim; keep_dims=true)
+    select_sizes(x::AbstractArray, dim; keep_dims=true)
 
 Additional size method to access the size at several dimensions
 in one call.
@@ -281,24 +281,24 @@ in one call.
 ```jldoctest
 julia> x = ones((2,4,6,8, 10));
 
-julia> selectsizes(x, (2,3))
+julia> select_sizes(x, (2,3))
 (1, 4, 6, 1, 1)
 
-julia> selectsizes(x, 5)
+julia> select_sizes(x, 5)
 (1, 1, 1, 1, 10)
 
-julia> selectsizes(x, (5,))
+julia> select_sizes(x, (5,))
 (1, 1, 1, 1, 10)
 
-julia> selectsizes(x, (2,3,4), keep_dims=false)
+julia> select_sizes(x, (2,3,4), keep_dims=false)
 (4, 6, 8)
 
-julia> selectsizes(x, (4,3,2), keep_dims=false)
+julia> select_sizes(x, (4,3,2), keep_dims=false)
 (8, 6, 4)
 ```
 
 """
-function selectsizes(x::AbstractArray{T},dim::NTuple{N,Int};
+function select_sizes(x::AbstractArray{T},dim::NTuple{N,Int};
                     keep_dims=true) where{T,N}
     if ~keep_dims
         return map(n->size(x,n),dim)
@@ -310,8 +310,8 @@ function selectsizes(x::AbstractArray{T},dim::NTuple{N,Int};
     return Tuple(sz)
 end 
 
-function selectsizes(x::AbstractArray, dim::Integer; keep_dims=true)
-    selectsizes(x, Tuple(dim), keep_dims=keep_dims)
+function select_sizes(x::AbstractArray, dim::Integer; keep_dims=true)
+    select_sizes(x, Tuple(dim), keep_dims=keep_dims)
 end
 
 

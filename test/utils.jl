@@ -17,11 +17,10 @@ Random.seed!(42)
         @test center_value(x) == x[center_position(x)...]
     end
 
-    @testset "Test selectsizes" begin
-        @test (1, 3, 2) == selectsizes(randn((4,3,2)), (2,3))
-        @test (3, 2) == selectsizes(randn((4,3,2)), (2,3), keep_dims=false)
-        @test (1, ) == selectsizes(randn((1,)), (1,), keep_dims=false)
-
+    @testset "Test select_sizes" begin
+        @test (1, 3, 2) == select_sizes(randn((4,3,2)), (2,3))
+        @test (3, 2) == select_sizes(randn((4,3,2)), (2,3), keep_dims=false)
+        @test (1, ) == select_sizes(randn((1,)), (1,), keep_dims=false)
     end
 
     @testset "Test single_dim_size" begin
