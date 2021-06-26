@@ -21,5 +21,5 @@ It also provides functions such as `select_region` which automatically deal with
 [CI-img]: https://github.com/RainerHeintzmann/NDTools.jl/actions/workflows/ci.yml/badge.svg
 [CI-url]: https://github.com/RainerHeintzmann/NDTools.jl/actions/workflows/ci.yml
 
-[codecov-img]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl/branch/main/graph/badge.svg?token=6XWI1M1MPB
+[codecov-img]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl/branch/main/graph/badge.svg?token=32hzAnelbC
 [codecov-url]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl
