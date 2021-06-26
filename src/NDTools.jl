@@ -1,9 +1,9 @@
 module NDTools
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays
-export collect_dim, selectdim, selectsizes, expand_add, expand_size, expanddims, 
+export collect_dim, selectdim, selectsizes, expand_add, expand_size, expand_dims, 
        apply_tuple_list, reorient, select_region, single_dim_size
-export get_complex_datatype, center_position, pack
-export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index
+export get_complex_datatype, center_position, center_value, pack
+export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -24,19 +24,14 @@ end
 
 """
     expand_size(sz,sz2)
-expands a size tuple sz with the sizes as given in the tuple sz2 for positions which do not exist in sz
+    expands a size tuple sz with the sizes as given in the tuple sz2 for positions which do not exist in sz. Typically one wants to
+    obtain a tuple, which is achieved by a wrapping cast: `Tuple(expand_size(sz,sz2))`
 ```jldoctest
 julia> sz = expand_size((1,2,3),(4,5,6,7,8,9))
 Base.Generator{UnitRange{Int64}, var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}}(var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}((1, 2, 3), (4, 5, 6, 7, 8, 9), 3), 1:6)
 
-julia> collect(sz)
-6-element Vector{Int64}:
- 1
- 2
- 3
- 7
- 8
- 9
+julia> Tuple(sz)
+(1, 2, 3, 7, 8, 9)
 ```
 """
 function expand_size(sz,sz2)
@@ -77,6 +72,11 @@ julia> g(3)
 curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
 
 ## These functions ensure that also numbers can be iterated and zipped
+"""
+    cast_iter(vals::Matrix)
+    a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
+    A Tuple is also interpreted as repeating this tuple over and over.
+"""
 function cast_iter(vals::Matrix)
     Tuple(Tuple(vals[:,n]) for n in 1:size(vals,2))
     # Tuple(vals[:,axes(vals, 2)])
@@ -94,6 +94,12 @@ function cast_iter(vals)
     repeated(vals) # during the zip operation this type always yields the same value
 end
 
+"""
+    cast_number_iter(vals::Matrix)
+    a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
+    The behavious is slightly different to cast_iter when it comes to Tuples
+    A Tuple is here iterated as a list of numbers.
+"""
 function cast_number_iter(vals::Vector{<:Number})
     Tuple(vals)   # makes the matrix iterable, interpreting it as a series of vectors
 end
@@ -106,7 +112,10 @@ function cast_number_iter(vals::Number)
     repeated(vals) # during the zip operation this type always yields the same value
 end
 
-
+"""
+    optional_mat_to_iter(vals)  # only for matrices
+    casts a matrix via cast_iter, all other types are unaffected
+"""
 function optional_mat_to_iter(vals)  # only for matrices
     vals
 end
@@ -115,14 +124,39 @@ function optional_mat_to_iter(vals::Matrix)
     cast_iter(vals)
 end
 
+"""
+    mat_to_tvec(v) 
+    converts a 2d matrix to a Vector of Tuples
+#Example:
+```jldoctest
+julia> NDTools.mat_to_tvec([1 3 5; 2 4 6])
+3-element Vector{Tuple{Int64, Int64}}:
+ (1, 2)
+ (3, 4)
+ (5, 6)
+```
+"""
 mat_to_tvec(v) = [Tuple(v[:,n]) for n in 1:size(v,2)] # converts a 2d matrix to a Vector of Tuples
 
+"""
+    apply_dims(scale, dims, N)
+    replaces scale entries not in dims with zeros. Can also be applied to an Iterable of Tuples
+#Arguments:
++ scale: Vector to pass its valid entries through 
++ dims: Tuple of valid dimensions
++ N: total length of the resulting  `NTuple`
+#Exmample:
+```jldoctest
+julia> NDTools.apply_dims((1,2,3),(1,2), 4)
+(1, 2, 0, 0)
+```
+"""
 function apply_dims(scale, dims, N)  # replaces scale entries not in dims with zeros
-    ntuple(i -> i ∈ dims ? scale[i] : zero(scale[1]), N)
+    ntuple(i -> i ∈ dims ? scale[i] : zero(eltype(scale)), N)
 end
 
 function apply_dims(scales::IterType, dims, N)  # replaces scale entries not in dims with zeros
-    Tuple(ntuple(i -> i ∈ dims ? scale[i] : zero(scale[1]), N)  for scale in  scales)
+    Tuple(ntuple(i -> i ∈ dims ? scale[i] : zero(eltype(scale)), N)  for scale in  scales)
 end
 
 # Functions for IndexFunArrays.utils
@@ -131,16 +165,20 @@ end
     single_dim_size(dim::Int,dim_size::Int, tdim=dim)
 
 Returns a tuple (length `tdim`, which by default is dim) of singleton sizes except at the final position `dim`, which contains `dim_size`
+#Arguments:
++ dim: non-zero position
++ dim_size: the value this non-zero position is given in the returned NTuple
++ tdim: total length of the returned NTuple
 
 # Example
 ```jldoctest
-julia> IndexFunArrays.single_dim_size(4, 3)
+julia> single_dim_size(4, 3)
 (1, 1, 1, 3)
 
-julia> IndexFunArrays.single_dim_size(4, 5)
+julia> single_dim_size(4, 5)
 (1, 1, 1, 5)
 
-julia> IndexFunArrays.single_dim_size(2, 5)
+julia> single_dim_size(2, 5)
 (1, 5)
 ```
 """
@@ -159,6 +197,12 @@ end
 """
     collect_dim(col, dim::Int)
  collects a collection `col` and reorients it into direction `dim`.
+ #Example:
+ ```jldoctest
+julia> collect_dim(1:5,2)
+1×5 Matrix{Int64}:
+ 1  2  3  4  5
+```
 """
 function collect_dim(col, dim::Int)
     reorient(collect(col), dim)
@@ -167,6 +211,17 @@ end
 """
     linear_index(pos, sz)
     converts a tuble (pos) to a linear index using the size (sz).
+
+# Example:
+```doctest
+julia> a = rand(10,10,10);
+
+julia> linear_index((3,4,5), (10,10,10))
+433
+
+julia> a[3,4,5]  == a[433]
+true
+```
 """
 function linear_index(pos, sz)
     factors = (1, cumprod(sz[1:end-1])...)
@@ -191,22 +246,24 @@ default_type(::Type{T}, def_T) where{T} = T # all other types remain to be the s
 
 # Functions from scaling_offset_types in IndexFunArrays
 
-
-
-function apply_tuple_list(f, t1,t2)  # applies a two-argument function to tubles and iterables of tuples
+"""
+    apply_tuple_list(f, t1,t2)
+    applies a two-argument function to tubles and iterables of tuples, if either of the arguments `t1` or `t2` is an Iterable
+"""
+function apply_tuple_list(f, t1, t2)  # applies a two-argument function to tubles and iterables of tuples
     return f(t1,t2)
 end
 
-function apply_tuple_list(f, t1,t2::IterType)
+function apply_tuple_list(f, t1, t2::IterType)
     return Tuple([f(t1,a2) for a2 in t2])
 end
 
-function apply_tuple_list(f, t1::IterType,t2)
+function apply_tuple_list(f, t1::IterType, t2)
     res= Tuple([f(a1,t2) for a1 in t1])
     return res
 end
 
-function apply_tuple_list(f, t1::IterType,t2::IterType)
+function apply_tuple_list(f, t1::IterType, t2::IterType)
     return Tuple([f(a[1],a[2]) for a in zip(t1,t2)])
 end
 
@@ -301,8 +358,8 @@ function slice_indices(a::NTuple{N, T}, dim::Integer, index::Integer) where {T, 
 end
 
 """
-    expanddims(x, ::Val{N})
-    expanddims(x, N::Number)
+    expand_dims(x, ::Val{N})
+    expand_dims(x, N::Number)
 
 expands the dimensions of an array to a given number of dimensions.
 
@@ -313,7 +370,7 @@ can then infer the return type.
 # Examples
 The result is a 5D array with singleton dimensions at the end
 ```jldoctest
-julia> expanddims(ones((1,2,3)), Val(5))
+julia> expand_dims(ones((1,2,3)), Val(5))
 1×2×3×1×1 Array{Float64, 5}:
 [:, :, 1, 1, 1] =
  1.0  1.0
@@ -324,7 +381,7 @@ julia> expanddims(ones((1,2,3)), Val(5))
 [:, :, 3, 1, 1] =
  1.0  1.0
 
-julia> expanddims(ones((1,2,3)), 5)
+julia> expand_dims(ones((1,2,3)), 5)
 1×2×3×1×1 Array{Float64, 5}:
 [:, :, 1, 1, 1] =
  1.0  1.0
@@ -336,16 +393,29 @@ julia> expanddims(ones((1,2,3)), 5)
  1.0  1.0
 ```
 """
-function expanddims(x, N::Number)
+function expand_dims(x, N::Number)
     return reshape(x, (size(x)..., ntuple(x -> 1, (N - ndims(x)))...))
 end
 
-function expanddims(x, ::Val{N}) where N
+function expand_dims(x, ::Val{N}) where N
     return reshape(x, (size(x)..., ntuple(x -> 1, (N - ndims(x)))...))
 end
 
+"""
+    center_position(field)
+    position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+    returns a tuple of ints which can be used for indexing.
+"""
 function center_position(field)
     (size(field) .÷ 2).+1
+end
+
+"""
+    center_value(field)
+    value of the `field` at the position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+"""
+function center_value(field)
+    field[center_position(field)...]
 end
 
 """
@@ -361,19 +431,23 @@ end
 
 
 """
-    select_region(mat,new_size)
+    select_region(mat;new_size=size(mat), center=ft_center_diff(size(mat)).+1, pad_value=zero(eltype(mat)))
 
-performs the necessary Fourier-space operations of resampling
-in the space of ft (meaning the already circshifted version of fft).
+    selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
+    the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
+    into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
 
-`new_size`.
-The size of the array view after the operation finished. 
++ `new_size`. The size of the array view after the operation finished. By default the original size is assumed
 
-`center`.
-Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
++ `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
+
++ `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
+
+The returned results is a mutable view, which allows this method to also be used for writing into a ROI
+
 # Examples
 ```jldoctest
-julia> using FFTW, FourierTools
+julia> using NDTools
 
 julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
 7×7 PaddedView(0.0, OffsetArray(::Matrix{Float64}, 4:6, 2:4), (Base.OneTo(7), Base.OneTo(7))) with eltype Float64:
@@ -386,9 +460,11 @@ julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region(mat; new_size=size(mat), center=ft_center_diff(size(mat)).+1)
+function select_region(mat; new_size=size(mat), center=ft_center_diff(size(mat)).+1, pad_value=zero(eltype(mat)))
+    new_size = Tuple(expand_size(new_size, size(mat)))
+    center = Tuple(expand_size(center, ft_center_diff(size(mat)).+1))
     oldcenter = ft_center_diff(new_size).+1
-    MutablePaddedView(PaddedView(0,mat,new_size, oldcenter .- center.+1));
+    MutablePaddedView(PaddedView(pad_value, mat,new_size, oldcenter .- center.+1));
 end
 
 struct MutablePaddedView{T,N,I,A} <: AbstractArray{T,N}
@@ -544,6 +620,24 @@ function radial_mean(data; nbins=nothing, bin_step=nothing, offset=CtrFT, scale=
     v .+= 1
     myevents[myevents .== 0] .= 1
     return mysum ./ myevents, bincenters
+end
+
+"""
+    Δ_phase(arr, dim)
+    calculates the relative phase slope along dimension `dim` of a non-zero array `arr` without wrap-around problems.
+#Argument:
+#Example:
++ arr: array of which to evaluate the phase slope
++ dim: dimension along which to evaluate the slope
+#Example:
+```jdoctest
+
+```
+"""
+function Δ_phase(arr, dim)
+    no_shift = ((n==dim) ? (1:size(arr,dim)-1) : (:) for n in 1:ndims(arr))
+    shift = ((n==dim) ? (2:size(arr,dim)) : (:) for n in 1:ndims(arr))
+    return angle.(arr[no_shift...] ./ arr[shift...]) # this is a complex-valued division to obtain the relative phase angle!
 end
 
 end # module
