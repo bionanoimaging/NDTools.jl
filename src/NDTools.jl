@@ -1,9 +1,11 @@
 module NDTools
-using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays
+using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics
 export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dims, 
        apply_tuple_list, reorient, select_region, single_dim_size
 export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
+export get_scan_pattern, flatten_trailing_dims
+export image_to_arr, moment_proj_normed
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -402,6 +404,61 @@ function expand_dims(x, ::Val{N}) where N
 end
 
 """
+    flatten_trailing_dims(arr, max_dim=length(arr)÷2+1)
+    flattens (squeezes) the trailing dims. `max_dim` denotes the last dimension to keep. The implementation
+    uses reshape and thus returns a modified view of the array referring to the same data. 
+    By default max_dim is adjusted such that a 2N array is squeezed into an N+1 array as needed for a scan.
+"""
+function flatten_trailing_dims(arr, max_dim)
+    reshape(arr,(size(arr)[1:max_dim-1]...,prod(size(arr)[max_dim:end])))
+end
+
+"""
+    regular_pattern(sz, offset=0, step=1)
+    returns a generator with tuples that point to a regular grid pattern.
+    Note that the result is zero-based, which means you will need to add `1` to each tuple element to use this for indexing into arrays.
+# Arguments:
++ sz: size of the underlaying array for which to generate the regular pattern
++ offset: offset of the first position. Can be tuple or scalar.
++ step: step between the indices. Can be tuple or scalar.
+"""
+function regular_pattern(sz, offset=0, step=1) # zero-based
+    return (offset.+step.*(Tuple(pos).-1) for pos in CartesianIndices(1 .+(((sz.-1).-offset) .÷ step)))
+end
+
+"""
+    get_scan_pattern(sz, pitch=1, step=1; dtype=Float32, flatten_scan_dims=false)
+    generates a scan pattern in N dimensions based on scanning an array of size `sz`, with a scan pitch of `pitch` and stepping by `step`.
+    The result is an array with 2*length(sz) dimensions.
+    Note that the scan needs to be commensurate, implying that `pitch` is an integer multiple of `step`.
+"""
+function get_scan_pattern(sz, pitch=1, step=1; dtype=Float32, flatten_scan_dims=false)
+    if any(pitch .% step .!= 0)
+        error("Scan pitch needs to be commensurate with scan step")
+    end
+    @show scan_sz = pitch .÷ step;
+    res = zeros(dtype, (sz...,scan_sz...))
+    for scan_pos in regular_pattern(scan_sz,0,1)
+        for pos in regular_pattern(sz,step.*scan_pos,pitch)
+            res[(1 .+ pos)...,(1 .+ scan_pos)...] = one(dtype)
+        end
+    end
+    if flatten_scan_dims
+        return flatten_trailing_dims(res, length(sz)+1);
+    else
+        return res
+    end
+end
+
+"""
+    image_to_arr(img)
+    converts an images as obtained by the `testimage` function into an array.
+"""
+function image_to_arr(img)
+    return Float32.(permutedims(img,(2,1)))
+end
+
+"""
     center_position(field)
     position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
     returns a tuple of ints which can be used for indexing.
@@ -639,5 +696,20 @@ function Δ_phase(arr, dim)
     shift = ((n==dim) ? (2:size(arr,dim)) : (:) for n in 1:ndims(arr))
     return angle.(arr[no_shift...] ./ arr[shift...]) # this is a complex-valued division to obtain the relative phase angle!
 end
+
+
+function moment_proj(data, h=3; pdims=3)
+    mdata = mean(data, dims=pdims)
+    return mean((data .- mdata).^h, dims=pdims)
+end
+
+"""
+    moment_proj_normed(data, h=3; pdims=3)
+    performes a projection over the `h`-th moment of the data along dimension(s) `pdims` normed by the variance.
+"""
+function moment_proj_normed(data, h=3; pdims=3)
+    moment_proj(data, h, pdims=pdims) ./ (moment_proj(data,2, pdims=pdims) .^((h-1)/2))
+end
+
 
 end # module
