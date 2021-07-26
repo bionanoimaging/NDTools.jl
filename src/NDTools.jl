@@ -5,7 +5,7 @@ export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dim
 export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 export get_scan_pattern, flatten_trailing_dims
-export image_to_arr, moment_proj_normed
+export image_to_arr, moment_proj_normed, idx_to_dim, ϕ_tuple
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -560,6 +560,27 @@ ComplexF64 (alias for Complex{Float64})
 get_complex_datatype(x :: Number) = Complex{typeof(x)}
 get_complex_datatype(x :: Complex ) = typeof(x)
 get_complex_datatype(x :: AbstractArray) = get_complex_datatype(eltype(x)(0))
+
+"""
+    idx_to_dim(idx_arr,dim=ndims(idx_arr)+1)  # this should be a view
+    converts an N-dimensional array of NTuple to an N+1 dimensional array.
+    This should eventually be realsized as a view rather than a copy operation.
+
++ `idx_arr`. The array of NTuple to convert
++ `dims`. Optional argument for the destination direction. The default is to append (stack) one dimension.
+
+"""
+function idx_to_dim(idx_arr, dim=ndims(idx_arr)+1)  # this should be a view
+    cat((getindex.(idx_arr,d) for d in 1:length(idx_arr[1]))..., dims=dim)
+end
+
+"""
+    ϕ_tuple(t::NTuple)
+    helper function to obtain the angle from a tuple of coordinates. The azimuthal angle is calculated via the `atan`. However, the order of the NTuple is (x,y).
++ `t`: an NTuple. Only the first two coordinates (x,y) are used and the azimuthal angle ϕ is returned
+"""
+ϕ_tuple(t::NTuple) = atan(t[2],t[1])
+
 
 
 """
