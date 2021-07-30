@@ -1,7 +1,7 @@
 module NDTools
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics
 export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dims, 
-       apply_tuple_list, reorient, select_region, select_region_copy, single_dim_size
+       apply_tuple_list, reorient, select_region, select_region_copy!, single_dim_size
 export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 export get_scan_pattern, flatten_trailing_dims
@@ -530,8 +530,9 @@ A helpfer function to calculate the index ranges to copy from source size `src_s
 integer center position of the destination aligning with the position in the source as specified by center.
 """
 function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst_size .÷2 .+1)
-    src_start = src_center .- dst_ctr .+1 # first without clipping
-    src_end = src_start .+ new_size .- 1
+    ROI_center = (new_size.÷2 .+1)
+    src_start = src_center .- ROI_center  .+1 # start of the first pixel to copy (without clipping)
+    src_end = src_start .+ new_size .- 1 # the last pixel to copy
     src_start_clip = max.(1, src_start)
     src_end_clip = min.(src_end, src_size)
     if any(src_start_clip .> src_size) || any(src_end_clip .< 1)
@@ -541,7 +542,7 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
     extra_src_end = max.(0, src_end .- src_end_clip)
     copy_size = new_size .- extra_src_start .- extra_src_end
 
-    dst_start = 1 .+ extra_src_start
+    dst_start = dst_ctr .- ROI_center .+1 .+ extra_src_start
     dst_end = dst_start .+ copy_size .- 1
     dst_end_clip = min.(dst_end, dst_size)
     dst_start_clip = max.(1, dst_start)
@@ -560,7 +561,7 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
 end
 
 """
-    select_region_copy(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(mat)))
+    select_region_copy!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(mat)))
 selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
 the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
 into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
@@ -577,18 +578,25 @@ If `nothing` is provided for `dst`, a new array of size `nw_size` is created.
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
 
 """
-function select_region_copy(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
+function select_region_copy!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
     if isnothing(dst)
         if isnothing(new_size)
-            new_size = size(src)
+            dst=fill(pad_value,size(src)) # zeros(eltype(src),new_size)
+        else
+            dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
         end
-        dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
-    else
+    end
+    if isnothing(new_size)
         new_size = size(dst)
     end
     if isnothing(dst_center)
         dst_center=size(dst).÷ 2 .+1
     end
+
+    new_size = Tuple(expand_size(new_size, size(dst)))
+    center = Tuple(expand_size(center, size(src).÷2 .+1))
+    dst_center = Tuple(expand_size(dst_center, size(dst).÷ 2 .+1))
+
 
     range_src, range_dst = get_src_dst_range(size(src),size(dst),new_size,center, dst_center)
     if !isempty(range_dst)
