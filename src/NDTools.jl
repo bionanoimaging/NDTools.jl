@@ -579,6 +579,20 @@ The returned results is a mutable view, which allows this method to also be used
 
 """
 function select_region_copy!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
+    if isnothing(new_size)
+        if isnothing(dst)
+            new_size = size(src)
+        else
+            new_size = size(dst)
+        end
+    end
+
+    if isnothing(dst)
+        new_size = Tuple(expand_size(new_size, size(src)))
+    else
+        new_size = Tuple(expand_size(new_size, size(dst)))
+    end
+
     if isnothing(dst)
         if isnothing(new_size)
             dst=fill(pad_value,size(src)) # zeros(eltype(src),new_size)
@@ -586,17 +600,12 @@ function select_region_copy!(src, dst=nothing; new_size=nothing, center=size(src
             dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
         end
     end
-    if isnothing(new_size)
-        new_size = size(dst)
-    end
-    if isnothing(dst_center)
-        dst_center=size(dst).÷ 2 .+1
-    end
 
-    new_size = Tuple(expand_size(new_size, size(dst)))
+    if isnothing(dst_center)
+        dst_center = size(dst).÷ 2 .+1
+    end
     center = Tuple(expand_size(center, size(src).÷2 .+1))
     dst_center = Tuple(expand_size(dst_center, size(dst).÷ 2 .+1))
-
 
     range_src, range_dst = get_src_dst_range(size(src),size(dst),new_size,center, dst_center)
     if !isempty(range_dst)
