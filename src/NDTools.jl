@@ -565,7 +565,8 @@ selects (extracts) a region of interest (ROI), defined by `new_size` and centere
 the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
 into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
 As opposed to `select_region()`, this version creates a copy rather than a view.
-`dst` specifies a destination array into which to write (new_size is overwritten in this case). If nothing is provided, a new array is created.
+`dst` specifies a destination array into which to write (new_size is interpreted to refer to the maximally assigned region). 
+If `nothing` is provided for `dst`, a new array of size `nw_size` is created.
 
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
 
