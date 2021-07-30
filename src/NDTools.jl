@@ -525,14 +525,13 @@ function select_region(mat; new_size=size(mat), center=ft_center_diff(size(mat))
 end
 
 """
-    get_src_dst_range(src_size, dst_size, center)
+    get_src_dst_range(src_size, dst_size, new_size, center)
 A helpfer function to calculate the index ranges to copy from source size `src_size` to destination size `dst_size` with the
 integer center position of the destination aligning with the position in the source as specified by center.
 """
-function get_src_dst_range(src_size, dst_size, center)
-    dst_ctr = dst_size .÷2 .+1
-    src_start = center .- dst_ctr .+1 # first without clipping
-    src_end = src_start .+ dst_size .- 1
+function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst_size .÷2 .+1)
+    src_start = src_center .- dst_ctr .+1 # first without clipping
+    src_end = src_start .+ new_size .- 1
     src_start_clip = max.(1, src_start)
     src_end_clip = min.(src_end, src_size)
     if any(src_start_clip .> src_size) || any(src_end_clip .< 1)
@@ -540,14 +539,14 @@ function get_src_dst_range(src_size, dst_size, center)
     end
     extra_src_start = max.(0, src_start_clip .- src_start)
     extra_src_end = max.(0, src_end .- src_end_clip)
-    copy_size = dst_size .- extra_src_start .- extra_src_end
+    copy_size = new_size .- extra_src_start .- extra_src_end
 
     dst_start = 1 .+ extra_src_start
     dst_end = dst_start .+ copy_size .- 1
     dst_end_clip = min.(dst_end, dst_size)
     dst_start_clip = max.(1, dst_start)
     if any(dst_start_clip .> dst_size) || any(dst_end_clip .< 1)
-        return (1:0), (1:0)
+        return (1:0), (1:0)  # returns an empty range for all coordinates
     end
 
     extra_dst_start = max.(0, dst_start_clip .- dst_start)
@@ -566,7 +565,7 @@ selects (extracts) a region of interest (ROI), defined by `new_size` and centere
 the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
 into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
 As opposed to `select_region()`, this version creates a copy rather than a view.
-`dst` specifies a destination array into which to write. If nothing is provided, a new array is created.
+`dst` specifies a destination array into which to write (new_size is overwritten in this case). If nothing is provided, a new array is created.
 
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
 
@@ -577,7 +576,7 @@ As opposed to `select_region()`, this version creates a copy rather than a view.
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
 
 """
-function select_region_copy(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, pad_value=zero(eltype(src)))
+function select_region_copy(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
     if isnothing(dst)
         if isnothing(new_size)
             new_size = size(src)
@@ -586,8 +585,11 @@ function select_region_copy(src, dst=nothing; new_size=nothing, center=size(src)
     else
         new_size = size(dst)
     end
+    if isnothing(dst_center)
+        dst_center=size(dst).÷ 2 .+1
+    end
 
-    range_src, range_dst = get_src_dst_range(size(src),new_size,center)
+    range_src, range_dst = get_src_dst_range(size(src),size(dst),new_size,center, dst_center)
     if !isempty(range_dst)
         dst[range_dst...] .= src[range_src...]
     end
