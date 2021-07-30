@@ -579,14 +579,14 @@ The returned results is a mutable view, which allows this method to also be used
 """
 function select_region_copy(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, pad_value=zero(eltype(src)))
     if isnothing(dst)
-        dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
-        if isnothing(dst)
+        if isnothing(new_size)
             new_size = size(src)
         end
+        dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
     else
-        size(dst)
+        new_size = size(dst)
     end
-    
+
     range_src, range_dst = get_src_dst_range(size(src),new_size,center)
     if !isempty(range_dst)
         dst[range_dst...] .= src[range_src...]
