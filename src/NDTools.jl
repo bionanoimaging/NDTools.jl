@@ -540,7 +540,7 @@ As opposed to `select_region()`, this version creates a copy rather than a view.
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
 
 """
-function select_region_copy(src; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(mat)))
+function select_region_copy(src; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)))
     dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
 
     dst_ctr = new_size .÷2 .+1
