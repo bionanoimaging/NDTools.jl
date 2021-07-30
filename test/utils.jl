@@ -177,6 +177,16 @@ Random.seed!(42)
 
     @testset "Test select_region" begin
         @test select_region(ones(3,),new_size=(7,),center=(1,), pad_value=-1) == [-1.0;-1.0;-1.0;1.0;1.0;1.0;-1.0]
+        for d=1:5
+            for n=1:10
+                sz = Tuple(rand(1:5) for q in 1:d)
+                a = rand(sz...)
+                nsz = Tuple(rand(1:5) for q in 1:d)
+                nc = Tuple(rand(1:5) for q in 1:d)
+                pad = rand()
+                @test all(select_region(a,new_size=nsz, center=nc, pad_value=pad) .== select_region_copy(a,new_size=nsz, center=nc, pad_value=pad))
+            end
+        end
     end
 
     @testset "Test soft_theta" begin 

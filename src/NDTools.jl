@@ -1,7 +1,7 @@
 module NDTools
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics
 export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dims, 
-       apply_tuple_list, reorient, select_region, single_dim_size
+       apply_tuple_list, reorient, select_region, select_region_copy, single_dim_size
 export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 export get_scan_pattern, flatten_trailing_dims
@@ -522,6 +522,56 @@ function select_region(mat; new_size=size(mat), center=ft_center_diff(size(mat))
     center = Tuple(expand_size(center, ft_center_diff(size(mat)).+1))
     oldcenter = ft_center_diff(new_size).+1
     MutablePaddedView(PaddedView(pad_value, mat,new_size, oldcenter .- center.+1));
+end
+
+"""
+    select_region_copy(src, new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(mat)))
+selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
+the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
+into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
+As opposed to `select_region()`, this version creates a copy rather than a view.
+
++ `new_size`. The size of the array view after the operation finished. By default the original size is assumed
+
++ `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
+
++ `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
+
+The returned results is a mutable view, which allows this method to also be used for writing into a ROI
+
+"""
+function select_region_copy(src; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(mat)))
+    dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
+
+    dst_ctr = new_size .÷2 .+1
+    src_start = center .- dst_ctr .+1 # first without clipping
+    src_end = src_start .+ new_size .- 1
+    src_start_clip = max.(1, src_start)
+    src_end_clip = min.(src_end, size(src))
+    if any(src_start_clip .> size(src)) || any(src_end_clip .< 1)
+        return dst
+    end
+    extra_src_start = max.(0, src_start_clip .- src_start)
+    extra_src_end = max.(0, src_end .- src_end_clip)
+    copy_size = new_size .- extra_src_start .- extra_src_end
+
+    dst_start = 1 .+ extra_src_start
+    dst_end = dst_start .+ copy_size .- 1
+    dst_end_clip = min.(dst_end, new_size)
+    dst_start_clip = max.(1, dst_start)
+    if any(dst_start_clip .> new_size) || any(dst_end_clip .< 1)
+        return dst
+    end
+
+    extra_dst_start = max.(0, dst_start_clip .- dst_start)
+    extra_dst_end = max.(0, dst_end .- dst_end_clip)
+    src_start_clip = src_start_clip .+ extra_dst_start
+    src_end_clip = src_end_clip .+ extra_dst_end
+
+    range_src = Tuple((src_start_clip[d]:src_end_clip[d]) for d in 1:length(src_start))
+    range_dst = Tuple((dst_start_clip[d]:dst_end_clip[d]) for d in 1:length(dst_start))
+    dst[range_dst...] .= src[range_src...]
+    return dst
 end
 
 struct MutablePaddedView{T,N,I,A} <: AbstractArray{T,N}
