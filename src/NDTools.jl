@@ -553,7 +553,7 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
     extra_dst_start = max.(0, dst_start_clip .- dst_start)
     extra_dst_end = max.(0, dst_end .- dst_end_clip)
     src_start_clip = src_start_clip .+ extra_dst_start
-    src_end_clip = src_end_clip .+ extra_dst_end
+    src_end_clip = max.(0, src_end_clip .- extra_dst_end)
 
     range_src = Tuple((src_start_clip[d]:src_end_clip[d]) for d in 1:length(src_start))
     range_dst = Tuple((dst_start_clip[d]:dst_end_clip[d]) for d in 1:length(dst_start))
@@ -561,22 +561,75 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
 end
 
 """
-    select_region_copy!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(mat)))
-selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
-the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
-into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
-As opposed to `select_region()`, this version creates a copy rather than a view.
-`dst` specifies a destination array into which to write (new_size is interpreted to refer to the maximally assigned region). 
-If `nothing` is provided for `dst`, a new array of size `nw_size` is created.
+    select_region!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat)))
+selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
+the position `center` in the source image. Note that the number of dimensions in `new_size`,  `center` and `dst_center` can be smaller , 
+in which case default values (see below) will be insterted into the missing dimensions. `new_size` does not need to fit into the source array 
+and missing values will be replaced with `pad_value`, if no `dst` is provided.
+
+As opposed to `select_region()`, this version returns a copy rather than a view or, alternatively, also writes into a destination array `dst` 
+(`new_size` is then interpreted to refer to the maximally assigned region). 
+If `nothing` is provided for `dst`, a new array of size `new_size` is created.
+
+#Parameters:
++ `src`. The source array to select from.
+
++ `dst`. The destination array to write into, if provided. By default `dst=nothing` a new array is created. The `dst`array (or new array) is returned. 
 
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
 
-+ `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
++ `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-center (right center) is assumed.
 
-+ `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
++ `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 
-The returned results is a mutable view, which allows this method to also be used for writing into a ROI
++ `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
 
+The returned results is the destination (or newly created) array.
+Note that this version is rather fast, since it consists of only a sinlge sub-array assigment.
+
+#Examples:
+```jdoctest
+julia> a = ones(5,6);
+
+julia> select_region!(a,new_size=(10,10))  # pad a with zeros to a size of (10,10)
+10×10 Matrix{Float64}:
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0
+ 0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0
+ 0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0
+ 0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0
+ 0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+julia> dst=elect_region!(a,new_size=(10,10), dst_center=(1,1)) # pad a with zeros to a size of (10,10), but place original center at the corner
+10×10 Matrix{Float64}:
+ 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+
+ julia> select_region!(2 .*a,dst, dst_center=size(dst)) # write a doubled version into the bottom right corner
+10×10 Matrix{Float64}:
+ 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
+```
 """
 function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
     if isnothing(new_size)
