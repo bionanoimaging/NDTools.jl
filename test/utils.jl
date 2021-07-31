@@ -184,7 +184,7 @@ Random.seed!(42)
                 nsz = Tuple(rand(1:5) for q in 1:d)
                 nc = Tuple(rand(1:5) for q in 1:d)
                 pad = rand()
-                @test all(select_region(a,new_size=nsz, center=nc, pad_value=pad) .== select_region_copy!(a,new_size=nsz, center=nc, pad_value=pad))
+                @test all(select_region(a,new_size=nsz, center=nc, pad_value=pad) .== select_region!(a,new_size=nsz, center=nc, pad_value=pad))
             end
         end
     end

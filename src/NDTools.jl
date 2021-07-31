@@ -1,7 +1,7 @@
 module NDTools
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics
 export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dims, 
-       apply_tuple_list, reorient, select_region, select_region_copy!, single_dim_size
+       apply_tuple_list, reorient, select_region, select_region!, single_dim_size
 export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 export get_scan_pattern, flatten_trailing_dims
@@ -578,7 +578,7 @@ If `nothing` is provided for `dst`, a new array of size `nw_size` is created.
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
 
 """
-function select_region_copy!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
+function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
     if isnothing(new_size)
         if isnothing(dst)
             new_size = size(src)
