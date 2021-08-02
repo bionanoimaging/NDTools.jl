@@ -7,7 +7,7 @@ export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 export get_scan_pattern, flatten_trailing_dims
 export image_to_arr, moment_proj_normed, idx_to_dim, ϕ_tuple
-export assign_to!, add_to!, mul_to!, div_to!
+export assign_to!, add_to!, sub_to!, mul_to!, div_to!
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -581,11 +581,11 @@ function add_to!(a,b)
 end
 
 """
-function subtract_to!(a,b)
+function sub_to!(a,b)
     subtractss array (or value) `b` from array `a` pointwise and assigns into a.
     Hlper function to be passed as an operator to functions such as select_region!
 """
-function subtract_to!(a,b)
+function sub_to!(a,b)
     a  .-= b
 end
 
@@ -630,10 +630,13 @@ If `nothing` is provided for `dst`, a new array of size `new_size` is created.
 
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 
-+ `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
++ `pad_value`. specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
+
++ `operator!`. allows to provide a user_defined array assignment function. The function my_op!(dst,src) should operator on array views and typically perform the assignment elementwise, overwriting the entries in dst.
+                Five such functions are exported by NDTools: `assign_to!`, `add_to!`, `sub_to!`, `mul_to!`, `div_to!`, representing the operations `.=`, `.+=`, `.-=`, `.*=` and `./=` respectively.
 
 The returned results is the destination (or newly created) array.
-Note that this version is rather fast, since it consists of only a sinlge sub-array assigment.
+Note that this version is rather fast, since it consists of only a sinlge sub-array assigment on views, avoiding copy operations.
 
 #Examples:
 ```jdoctest

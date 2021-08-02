@@ -187,6 +187,29 @@ Random.seed!(42)
                 @test all(select_region(a,new_size=nsz, center=nc, pad_value=pad) .== select_region!(a,new_size=nsz, center=nc, pad_value=pad))
             end
         end
+        a = ones(10,10)
+        @test all(select_region!(a) .== 1) # simplest version
+        nz = (20,20)
+        @test all(select_region!(a, new_size=nz, pad_value=1) .== 1) # with padding
+        @test all(select_region!(a, new_size=nz, center=(-100,100), pad_value=10) .== 10) # only pad values
+        function f(a,b) a.+=1 end # user-defined function
+        @test all(select_region!(2 .*a, a, operator! = f) .== 2) # let the operator add one to destination
+    end
+
+    @testset "Test assignment functions" begin
+        dst = ones(10,10)
+        src = ones(10,10)
+        @test all(assign_to!(dst,src) .== 1)
+        dst = ones(10,10)
+        @test all(add_to!(dst,src) .== 2)
+        dst = ones(10,10)
+        @test all(sub_to!(dst,src) .== 0)
+        src = ones(10,10) .* 2
+        dst = ones(10,10) .* 2
+        @test all(mul_to!(dst,src) .== 4)
+        src = ones(10,10) .* 2
+        dst = ones(10,10)
+        @test all(div_to!(dst,src) .== 0.5)
     end
 
     @testset "Test soft_theta" begin 
