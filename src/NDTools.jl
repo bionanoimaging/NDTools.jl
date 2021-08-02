@@ -1,4 +1,5 @@
 module NDTools
+using Core: add_int
 using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics
 export collect_dim, selectdim, select_sizes, expand_add, expand_size, expand_dims, 
        apply_tuple_list, reorient, select_region, select_region!, single_dim_size
@@ -6,6 +7,7 @@ export get_complex_datatype, center_position, center_value, pack
 export soft_theta, exp_decay, multi_exp_decay, soft_delta, radial_mean, linear_index, Δ_phase
 export get_scan_pattern, flatten_trailing_dims
 export image_to_arr, moment_proj_normed, idx_to_dim, ϕ_tuple
+export assign_to!, add_to!, mul_to!, div_to!
 
 const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.Repeated}
 
@@ -561,7 +563,53 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
 end
 
 """
-    select_region!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat)))
+function assign_to!(a,b)
+    assignes array (or value) `b` to array `a` pointwise.
+    Helper function to be passed as an operator to functions such as select_region!
+"""
+function assign_to!(a,b)
+    a .= b
+end
+
+"""
+function add_to!(a,b)
+    adds array (or value) `b` to array `a` pointwise.
+    Hlper function to be passed as an operator to functions such as select_region!
+"""
+function add_to!(a,b)
+    a  .+= b
+end
+
+"""
+function subtract_to!(a,b)
+    subtractss array (or value) `b` from array `a` pointwise and assigns into a.
+    Hlper function to be passed as an operator to functions such as select_region!
+"""
+function subtract_to!(a,b)
+    a  .-= b
+end
+
+"""
+function mul_to!(a,b)
+    multiplies array (or value) `b` to array `a` pointwise.
+    Helper function to be passed as an operator to functions such as select_region!
+"""
+function mul_to!(a,b)
+    a .*= b
+end
+
+"""
+function div_to!(a,b)
+    divides array `a` by array (or value) `b` to array a pointwise.
+    Helper function to be passed as an operator to functions such as select_region!
+"""
+function div_to!(a,b)
+    a ./= b
+end
+
+
+"""
+    select_region!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat), operator!=assign_to!))
 selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
 the position `center` in the source image. Note that the number of dimensions in `new_size`,  `center` and `dst_center` can be smaller , 
 in which case default values (see below) will be insterted into the missing dimensions. `new_size` does not need to fit into the source array 
@@ -631,7 +679,7 @@ julia> dst=elect_region!(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
  0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
 ```
 """
-function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)))
+function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)), operator! =assign_to!)
     if isnothing(new_size)
         if isnothing(dst)
             new_size = size(src)
@@ -662,7 +710,10 @@ function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2
 
     range_src, range_dst = get_src_dst_range(size(src),size(dst),new_size,center, dst_center)
     if !isempty(range_dst)
-        dst[range_dst...] .= src[range_src...]
+        v_src = @view src[range_src...]
+        v_dst = @view dst[range_dst...]
+        operator!(v_dst, v_src)  # for some strange reason this is faster (and of course more flexible) than the line below.
+        # dst[range_dst...] .+= src[range_src...]
     end
     return dst
 end
