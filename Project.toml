@@ -11,7 +11,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-IndexFunArrays = "0.1.6, 0.2.0"
+IndexFunArrays = "0.2"
 PaddedViews = "0.5.8"
 julia = "1.6"
 
