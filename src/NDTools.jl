@@ -717,39 +717,44 @@ julia> dst=elect_region!(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
  0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
 ```
 """
-function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)), operator! =assign_to!)
-    new_size = let
+function select_region!(src::T, dst=nothing; new_size=nothing, 
+                        center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)), 
+                        operator! =assign_to!) where {T}
+    new_size = let 
         if isnothing(new_size)
             if isnothing(dst)
                 size(src)
             else
                 size(dst)
             end
-        end
-    end
-
-    new_size = let
-        if isnothing(dst)
-            Tuple(expand_size(new_size, size(src)))
         else
-            Tuple(expand_size(new_size, size(dst)))
+            new_size
         end
     end
 
+    new_size = let 
+        if isnothing(dst)
+            new_size = Tuple(expand_size(new_size, size(src)))
+        else
+            new_size = Tuple(expand_size(new_size, size(dst)))
+        end
+    end
+
+    
     dst = let 
         if isnothing(dst)
             if isnothing(new_size)
-                fill(pad_value,size(src)) # zeros(eltype(src),new_size)
+                dst=fill(pad_value,size(src))
             else
-                fill(pad_value,new_size) # zeros(eltype(src),new_size)
+                dst=fill(pad_value,new_size)
             end
+        else
+            dst
         end
     end
 
-
-    if isnothing(dst_center)
-        dst_center = size(dst).÷ 2 .+1
-    end
+    dst_center = isnothing(dst_center) ? size(dst).÷ 2 .+1 : dst_center
+    
     center = Tuple(expand_size(center, size(src).÷2 .+1))
     dst_center = Tuple(expand_size(dst_center, size(dst).÷ 2 .+1))
 
@@ -760,7 +765,7 @@ function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2
         operator!(v_dst, v_src)  # for some strange reason this is faster (and of course more flexible) than the line below.
         # dst[range_dst...] .+= src[range_src...]
     end
-    return dst
+    return dst::T
 end
 
 struct MutablePaddedView{T,N,I,A} <: AbstractArray{T,N}
