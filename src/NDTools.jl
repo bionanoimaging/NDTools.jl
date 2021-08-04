@@ -15,7 +15,10 @@ const IterType = Union{NTuple{N,Tuple} where N, Vector, Matrix, Base.Iterators.R
 
 """
     expand_add(t1,t2)  # adds t1 to t2 as a tuple and returns t2[n] for n > length(t1)
+
 adds the elements of the tuple t1 to t2 for components in t1 which exist for the rest just t2 is used.
+
+Example:
 ```jldoctest
 julia> expand_add((1,2,3),(4,5,6,7,8,9))
 (5, 7, 9, 7, 8, 9)
@@ -28,8 +31,11 @@ end
 
 """
     expand_size(sz,sz2)
-    expands a size tuple sz with the sizes as given in the tuple sz2 for positions which do not exist in sz. Typically one wants to
-    obtain a tuple, which is achieved by a wrapping cast: `Tuple(expand_size(sz,sz2))`
+
+expands a size tuple sz with the sizes as given in the tuple sz2 for positions which do not exist in sz. Typically one wants to
+obtain a tuple, which is achieved by a wrapping cast: `Tuple(expand_size(sz,sz2))`
+
+Example:
 ```jldoctest
 julia> sz = expand_size((1,2,3),(4,5,6,7,8,9))
 Base.Generator{UnitRange{Int64}, var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}}(var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}((1, 2, 3), (4, 5, 6, 7, 8, 9), 3), 1:6)
@@ -48,8 +54,11 @@ end
 
 """
     optional_posZ(x, offset)
+
 returns a z position `posZ = x[3]-offset[3]` if the tuple is long enough and `posZ=1` otherwise.
 This is useful for 3d routines, which should also work for 2d data.
+
+Example:
 ```jldoctest
 julia> optional_posZ((5,5),(2,3))
 1
@@ -64,7 +73,10 @@ optional_posZ(x::NTuple{N,T}, offset::NTuple{N,T}) where {T,N} = x[3]-offset[3]
 
 """
     curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
+
 allows to remove the fix the first argument x in a function f with any number of arguments
+
+Example:
 ```jldoctest
 julia> g = curry(+,10.0)
 #9 (generic function with 1 method)
@@ -78,8 +90,9 @@ curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
 ## These functions ensure that also numbers can be iterated and zipped
 """
     cast_iter(vals::Matrix)
-    a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
-    A Tuple is also interpreted as repeating this tuple over and over.
+
+a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
+A Tuple is also interpreted as repeating this tuple over and over.
 """
 function cast_iter(vals::Matrix)
     Tuple(Tuple(vals[:,n]) for n in 1:size(vals,2))
@@ -100,9 +113,10 @@ end
 
 """
     cast_number_iter(vals::Matrix)
-    a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
-    The behavious is slightly different to cast_iter when it comes to Tuples
-    A Tuple is here iterated as a list of numbers.
+
+a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
+The behavious is slightly different to cast_iter when it comes to Tuples
+A Tuple is here iterated as a list of numbers.
 """
 function cast_number_iter(vals::Vector{<:Number})
     Tuple(vals)   # makes the matrix iterable, interpreting it as a series of vectors
@@ -118,7 +132,8 @@ end
 
 """
     optional_mat_to_iter(vals)  # only for matrices
-    casts a matrix via cast_iter, all other types are unaffected
+
+casts a matrix via cast_iter, all other types are unaffected
 """
 function optional_mat_to_iter(vals)  # only for matrices
     vals
@@ -130,8 +145,9 @@ end
 
 """
     mat_to_tvec(v) 
-    converts a 2d matrix to a Vector of Tuples
-#Example:
+converts a 2d matrix to a Vector of Tuples
+
+Example:
 ```jldoctest
 julia> NDTools.mat_to_tvec([1 3 5; 2 4 6])
 3-element Vector{Tuple{Int64, Int64}}:
@@ -144,12 +160,15 @@ mat_to_tvec(v) = [Tuple(v[:,n]) for n in 1:size(v,2)] # converts a 2d matrix to 
 
 """
     apply_dims(scale, dims, N)
-    replaces scale entries not in dims with zeros. Can also be applied to an Iterable of Tuples
-#Arguments:
+
+replaces scale entries not in dims with zeros. Can also be applied to an Iterable of Tuples
+
+Arguments:
 + scale: Vector to pass its valid entries through 
 + dims: Tuple of valid dimensions
 + N: total length of the resulting  `NTuple`
-#Exmample:
+
+Example:
 ```jldoctest
 julia> NDTools.apply_dims((1,2,3),(1,2), 4)
 (1, 2, 0, 0)
@@ -169,12 +188,13 @@ end
     single_dim_size(dim::Int,dim_size::Int, tdim=dim)
 
 Returns a tuple (length `tdim`, which by default is dim) of singleton sizes except at the final position `dim`, which contains `dim_size`
-#Arguments:
+
+Arguments:
 + dim: non-zero position
 + dim_size: the value this non-zero position is given in the returned NTuple
 + tdim: total length of the returned NTuple
 
-# Example
+Example
 ```jldoctest
 julia> single_dim_size(4, 3)
 (1, 1, 1, 3)
@@ -192,6 +212,7 @@ end
 
 """
     reorient(vec, dim)
+
 reorients a 1D vector `vec` along dimension `dim`.
 """
 function reorient(vec, dim::Int)
@@ -200,8 +221,10 @@ end
 
 """
     collect_dim(col, dim::Int)
- collects a collection `col` and reorients it into direction `dim`.
- #Example:
+
+collects a collection `col` and reorients it into direction `dim`.
+
+Example:
  ```jldoctest
 julia> collect_dim(1:5,2)
 1×5 Matrix{Int64}:
@@ -214,9 +237,10 @@ end
 
 """
     linear_index(pos, sz)
-    converts a tuble (pos) to a linear index using the size (sz).
 
-# Example:
+converts a tuble (pos) to a linear index using the size (sz).
+
+Example:
 ```doctest
 julia> a = rand(10,10,10);
 
@@ -252,7 +276,8 @@ default_type(::Type{T}, def_T) where{T} = T # all other types remain to be the s
 
 """
     apply_tuple_list(f, t1,t2)
-    applies a two-argument function to tubles and iterables of tuples, if either of the arguments `t1` or `t2` is an Iterable
+
+applies a two-argument function to tubles and iterables of tuples, if either of the arguments `t1` or `t2` is an Iterable
 """
 function apply_tuple_list(f, t1, t2)  # applies a two-argument function to tubles and iterables of tuples
     return f(t1,t2)
@@ -281,7 +306,7 @@ Additional size method to access the size at several dimensions
 in one call.
 `keep_dims` allows to return the other dimensions as singletons.
 
-# Examples
+Examples
 ```jldoctest
 julia> x = ones((2,4,6,8, 10));
 
@@ -321,10 +346,12 @@ end
 
 """
     slice(arr, dim, index)
+
 Return a `N` dimensional slice (where one dimensions has size 1) of the N-dimensional `arr` at the index position
 `index` in the `dim` dimension of the array.
 It holds `size(out)[dim] == 1`.
-# Examples
+
+Examples
 ```jldoctest
 julia> x = [1 2 3; 4 5 6; 7 8 9]
 3×3 Matrix{Int64}:
@@ -345,10 +372,11 @@ end
 """
     slice_indices(a, dim, index)
 
+Arguments:
 `a` should be the axes obtained by `axes(arr)` of an array.
 `dim` is the dimension to be selected and `index` the index of it.
 
-# Examples
+Examples
 ```jldoctest
 julia> FourierTools.slice_indices((1:10, 1:20, 1:12, 1:33), 1, 3)
 (3:3, 1:20, 1:12, 1:33)
@@ -371,7 +399,7 @@ Try to prefer the `Val` version because this is type-stable.
 `Val(N)` encapsulates the number in a type from which the compiler
 can then infer the return type.
 
-# Examples
+Examples
 The result is a 5D array with singleton dimensions at the end
 ```jldoctest
 julia> expand_dims(ones((1,2,3)), Val(5))
@@ -407,9 +435,10 @@ end
 
 """
     flatten_trailing_dims(arr, max_dim=length(arr)÷2+1)
-    flattens (squeezes) the trailing dims. `max_dim` denotes the last dimension to keep. The implementation
-    uses reshape and thus returns a modified view of the array referring to the same data. 
-    By default max_dim is adjusted such that a 2N array is squeezed into an N+1 array as needed for a scan.
+
+flattens (squeezes) the trailing dims. `max_dim` denotes the last dimension to keep. The implementation
+uses reshape and thus returns a modified view of the array referring to the same data. 
+By default max_dim is adjusted such that a 2N array is squeezed into an N+1 array as needed for a scan.
 """
 function flatten_trailing_dims(arr, max_dim)
     reshape(arr,(size(arr)[1:max_dim-1]...,prod(size(arr)[max_dim:end])))
@@ -417,9 +446,11 @@ end
 
 """
     regular_pattern(sz, offset=0, step=1)
-    returns a generator with tuples that point to a regular grid pattern.
-    Note that the result is zero-based, which means you will need to add `1` to each tuple element to use this for indexing into arrays.
-# Arguments:
+
+returns a generator with tuples that point to a regular grid pattern.
+Note that the result is zero-based, which means you will need to add `1` to each tuple element to use this for indexing into arrays.
+
+Arguments:
 + sz: size of the underlaying array for which to generate the regular pattern
 + offset: offset of the first position. Can be tuple or scalar.
 + step: step between the indices. Can be tuple or scalar.
@@ -430,9 +461,10 @@ end
 
 """
     get_scan_pattern(sz, pitch=1, step=1; dtype=Float32, flatten_scan_dims=false)
-    generates a scan pattern in N dimensions based on scanning an array of size `sz`, with a scan pitch of `pitch` and stepping by `step`.
-    The result is an array with 2*length(sz) dimensions.
-    Note that the scan needs to be commensurate, implying that `pitch` is an integer multiple of `step`.
+
+generates a scan pattern in N dimensions based on scanning an array of size `sz`, with a scan pitch of `pitch` and stepping by `step`.
+The result is an array with 2*length(sz) dimensions.
+Note that the scan needs to be commensurate, implying that `pitch` is an integer multiple of `step`.
 """
 function get_scan_pattern(sz, pitch=1, step=1; dtype=Float32, flatten_scan_dims=false)
     if any(pitch .% step .!= 0)
@@ -454,7 +486,8 @@ end
 
 """
     image_to_arr(img)
-    converts an images as obtained by the `testimage` function into an array.
+
+converts an images as obtained by the `testimage` function into an array.
 """
 function image_to_arr(img)
     return Float32.(permutedims(img,(2,1)))
@@ -462,8 +495,9 @@ end
 
 """
     center_position(field)
-    position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
-    returns a tuple of ints which can be used for indexing.
+
+position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+returns a tuple of ints which can be used for indexing.
 """
 function center_position(field)
     (size(field) .÷ 2).+1
@@ -471,7 +505,8 @@ end
 
 """
     center_value(field)
-    value of the `field` at the position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+
+value of the `field` at the position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
 """
 function center_value(field)
     field[center_position(field)...]
@@ -492,19 +527,18 @@ end
 """
     select_region(mat;new_size=size(mat), center=ft_center_diff(size(mat)).+1, pad_value=zero(eltype(mat)))
 
-    selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
-    the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
-    into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
+selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
+the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
+into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
 
+Arguments:
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
-
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
-
 + `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
 
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
 
-# Examples
+Examples
 ```jldoctest
 julia> using NDTools
 
@@ -528,6 +562,7 @@ end
 
 """
     get_src_dst_range(src_size, dst_size, new_size, center)
+
 A helpfer function to calculate the index ranges to copy from source size `src_size` to destination size `dst_size` with the
 integer center position of the destination aligning with the position in the source as specified by center.
 """
@@ -563,45 +598,50 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
 end
 
 """
-function assign_to!(a,b)
-    assignes array (or value) `b` to array `a` pointwise.
-    Helper function to be passed as an operator to functions such as select_region!
+    assign_to!(a,b)
+    
+assignes array (or value) `b` to array `a` pointwise.
+Helper function to be passed as an operator to functions such as select_region!
 """
 function assign_to!(a,b)
     a .= b
 end
 
 """
-function add_to!(a,b)
-    adds array (or value) `b` to array `a` pointwise.
-    Hlper function to be passed as an operator to functions such as select_region!
+    add_to!(a,b)
+
+adds array (or value) `b` to array `a` pointwise.
+Hlper function to be passed as an operator to functions such as select_region!
 """
 function add_to!(a,b)
     a  .+= b
 end
 
 """
-function sub_to!(a,b)
-    subtractss array (or value) `b` from array `a` pointwise and assigns into a.
-    Hlper function to be passed as an operator to functions such as select_region!
+    sub_to!(a,b)
+    
+subtractss array (or value) `b` from array `a` pointwise and assigns into a.
+Hlper function to be passed as an operator to functions such as select_region!
 """
 function sub_to!(a,b)
     a  .-= b
 end
 
 """
-function mul_to!(a,b)
-    multiplies array (or value) `b` to array `a` pointwise.
-    Helper function to be passed as an operator to functions such as select_region!
+    mul_to!(a,b)
+
+multiplies array (or value) `b` to array `a` pointwise.
+Helper function to be passed as an operator to functions such as select_region!
 """
 function mul_to!(a,b)
     a .*= b
 end
 
 """
-function div_to!(a,b)
-    divides array `a` by array (or value) `b` to array a pointwise.
-    Helper function to be passed as an operator to functions such as select_region!
+    div_to!(a,b)
+    
+divides array `a` by array (or value) `b` to array a pointwise.
+Helper function to be passed as an operator to functions such as select_region!
 """
 function div_to!(a,b)
     a ./= b
@@ -610,6 +650,7 @@ end
 
 """
     select_region!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat), operator!=assign_to!))
+
 selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
 the position `center` in the source image. Note that the number of dimensions in `new_size`,  `center` and `dst_center` can be smaller , 
 in which case default values (see below) will be insterted into the missing dimensions. `new_size` does not need to fit into the source array 
@@ -619,26 +660,20 @@ As opposed to `select_region()`, this version returns a copy rather than a view 
 (`new_size` is then interpreted to refer to the maximally assigned region). 
 If `nothing` is provided for `dst`, a new array of size `new_size` is created.
 
-#Parameters:
+Arguments:
 + `src`. The source array to select from.
-
 + `dst`. The destination array to write into, if provided. By default `dst=nothing` a new array is created. The `dst`array (or new array) is returned. 
-
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
-
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-center (right center) is assumed.
-
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
-
 + `pad_value`. specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
-
 + `operator!`. allows to provide a user_defined array assignment function. The function my_op!(dst,src) should operator on array views and typically perform the assignment elementwise, overwriting the entries in dst.
                 Five such functions are exported by NDTools: `assign_to!`, `add_to!`, `sub_to!`, `mul_to!`, `div_to!`, representing the operations `.=`, `.+=`, `.-=`, `.*=` and `./=` respectively.
 
 The returned results is the destination (or newly created) array.
 Note that this version is rather fast, since it consists of only a sinlge sub-array assigment on views, avoiding copy operations.
 
-#Examples:
+Examples:
 ```jdoctest
 julia> a = ones(5,6);
 
@@ -749,9 +784,12 @@ Base.@propagate_inbounds function Base.getindex(A::MutablePaddedView{T,N}, pos::
     getindex(A.data, pos...)
 end
 
+
 """
     get_complex_datatype(x)
-    returns the complex-valued datatyp which encompasses the eltype
+
+returns the complex-valued datatyp which encompasses the eltype
+
 Examples:
 ```jdoctest
 julia> get_complex_datatype([1f0,2f0,3f0])
@@ -767,9 +805,11 @@ get_complex_datatype(x :: AbstractArray) = get_complex_datatype(eltype(x)(0))
 
 """
     idx_to_dim(idx_arr,dim=ndims(idx_arr)+1)  # this should be a view
-    converts an N-dimensional array of NTuple to an N+1 dimensional array.
-    This should eventually be realsized as a view rather than a copy operation.
 
+converts an N-dimensional array of NTuple to an N+1 dimensional array.
+This should eventually be realsized as a view rather than a copy operation.
+
+Arguments:
 + `idx_arr`. The array of NTuple to convert
 + `dims`. Optional argument for the destination direction. The default is to append (stack) one dimension.
 
@@ -780,7 +820,10 @@ end
 
 """
     ϕ_tuple(t::NTuple)
-    helper function to obtain the angle from a tuple of coordinates. The azimuthal angle is calculated via the `atan`. However, the order of the NTuple is (x,y).
+
+helper function to obtain the angle from a tuple of coordinates. The azimuthal angle is calculated via the `atan`. However, the order of the NTuple is (x,y).
+
+Arguments:
 + `t`: an NTuple. Only the first two coordinates (x,y) are used and the azimuthal angle ϕ is returned
 """
 ϕ_tuple(t::NTuple) = atan(t[2],t[1])
@@ -789,8 +832,9 @@ end
 
 """
     pack(myTuple::Tuple, do_fit)
-    this packs a tuple of values into a vector which is normalized per direction and returns an unpack function which reverts this.
-    This tool is useful for fit routines.
+
+this packs a tuple of values into a vector which is normalized per direction and returns an unpack function which reverts this.
+This tool is useful for fit routines.
 
 returns the packed tuples (with a position being true in do_fit) as a vector and the unpack algorithm as a closure.
 """
@@ -834,16 +878,22 @@ end
 
 """
     soft_theta(val, eps=0.1) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
-    this is a version of the theta function that uses a soft transition and is differentialble.
-val: value to compare with zero
-eps: hardness of the step function (spanning from -eps to eps)
+
+this is a version of the theta function that uses a soft transition and is differentialble.
+
+Arguments:
++ val: value to compare with zero
++ eps: hardness of the step function (spanning from -eps to eps)
 """
 soft_theta(val, eps=0.01) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos.((val .+ eps).*(pi/(2*eps))))./2.0) # to make the threshold differentiable
 
 """
     soft_delta(val, eps=0.1) = (val .> eps) ? 1.0 : ((val .< -eps) ? 0.0 : (1.0 .- cos((val .+ eps).*(pi/(2*eps))))./2) # to make the threshold differentiable
-    this is a smooth version of the theta function that uses a soft peak and is differentialble.
-    The sum is not normalized but the value at val is one.
+
+this is a smooth version of the theta function that uses a soft peak and is differentialble.
+The sum is not normalized but the value at val is one.
+
+Arguments:
 val: value to compare with zero
 eps: hardness of the step function (spanning from -eps to eps)
 """
@@ -851,30 +901,36 @@ soft_delta(val, eps=0.01) = (abs2.(val) .> abs2.(eps)) ? 0.0 : (1.0 .+ cos.(val.
 
 """
     exp_decay(t,τ, eps=0.1) 
-    an exponential decay starting at zero and using a soft threshold.
-    Note that this function can be applied to multiple decay times τ simulataneously, yielding multiple decays stacked along the second dimension
+
+an exponential decay starting at zero and using a soft threshold.
+Note that this function can be applied to multiple decay times τ simulataneously, yielding multiple decays stacked along the second dimension
 """
 exp_decay(t,τ, eps=0.01) = soft_theta.(t,eps) .* exp.( - (t ./ transpose(τ)))
 
 
 """
     multi_exp_decay(t,amps, τs, eps=0.1) 
-    a sum of exponential decays starting at t==zero and using a soft threshold.
-t: time series to apply this to
-amps: individual amplitudes as a vector
-τs : individual lifetimes as a vector
-eps: width of the soft edge
+
+a sum of exponential decays starting at t==zero and using a soft threshold.
+
+Arguments:
++ t: time series to apply this to
++ amps: individual amplitudes as a vector
++ τs : individual lifetimes as a vector
++ eps: width of the soft edge
 """
 multi_exp_decay(t, amps, τs, eps=0.01) = sum(transpose(amps).*exp_decay(t, τs, eps), dims=2)[:,1] 
 
 """
     radial_mean(data; maxbin=nothing, bin_step=nothing, pixelsize=nothing)
+
 calculates the radial mean of a dataset `data`.
 returns a tuple of the radial_mean and the bin_centers.
+
 Arguments:
-data: data to radially average
-maxbin: a maximum bin value
-bin_step: 
++ data: data to radially average
++ maxbin: a maximum bin value
++ bin_step: optionally defines the step between the bins
 """
 function radial_mean(data; nbins=nothing, bin_step=nothing, offset=CtrFT, scale=nothing)
     if isnothing(scale)
@@ -906,15 +962,12 @@ end
 
 """
     Δ_phase(arr, dim)
-    calculates the relative phase slope along dimension `dim` of a non-zero array `arr` without wrap-around problems.
-#Argument:
-#Example:
+
+calculates the relative phase slope along dimension `dim` of a non-zero array `arr` without wrap-around problems.
+
+Arguments:
 + arr: array of which to evaluate the phase slope
 + dim: dimension along which to evaluate the slope
-#Example:
-```jdoctest
-
-```
 """
 function Δ_phase(arr, dim)
     no_shift = ((n==dim) ? (1:size(arr,dim)-1) : (:) for n in 1:ndims(arr))
@@ -930,7 +983,8 @@ end
 
 """
     moment_proj_normed(data, h=3; pdims=3)
-    performes a projection over the `h`-th moment of the data along dimension(s) `pdims` normed by the variance.
+
+performes a projection over the `h`-th moment of the data along dimension(s) `pdims` normed by the variance.
 """
 function moment_proj_normed(data, h=3; pdims=3)
     moment_proj(data, h, pdims=pdims) ./ (moment_proj(data,2, pdims=pdims) .^((h-1)/2))
