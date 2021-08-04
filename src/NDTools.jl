@@ -720,6 +720,8 @@ julia> dst=elect_region!(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
 function select_region!(src::T, dst=nothing; new_size=nothing, 
                         center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)), 
                         operator! =assign_to!) where {T}
+    pad_value = eltype(T)(pad_value)
+
     new_size = let 
         if isnothing(new_size)
             if isnothing(dst)
