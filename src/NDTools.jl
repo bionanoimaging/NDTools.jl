@@ -683,27 +683,34 @@ julia> dst=elect_region!(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
 ```
 """
 function select_region!(src, dst=nothing; new_size=nothing, center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)), operator! =assign_to!)
-    if isnothing(new_size)
-        if isnothing(dst)
-            new_size = size(src)
-        else
-            new_size = size(dst)
-        end
-    end
-
-    if isnothing(dst)
-        new_size = Tuple(expand_size(new_size, size(src)))
-    else
-        new_size = Tuple(expand_size(new_size, size(dst)))
-    end
-
-    if isnothing(dst)
+    new_size = let
         if isnothing(new_size)
-            dst=fill(pad_value,size(src)) # zeros(eltype(src),new_size)
-        else
-            dst=fill(pad_value,new_size) # zeros(eltype(src),new_size)
+            if isnothing(dst)
+                size(src)
+            else
+                size(dst)
+            end
         end
     end
+
+    new_size = let
+        if isnothing(dst)
+            Tuple(expand_size(new_size, size(src)))
+        else
+            Tuple(expand_size(new_size, size(dst)))
+        end
+    end
+
+    dst = let 
+        if isnothing(dst)
+            if isnothing(new_size)
+                fill(pad_value,size(src)) # zeros(eltype(src),new_size)
+            else
+                fill(pad_value,new_size) # zeros(eltype(src),new_size)
+            end
+        end
+    end
+
 
     if isnothing(dst_center)
         dst_center = size(dst).÷ 2 .+1
