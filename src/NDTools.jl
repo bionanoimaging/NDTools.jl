@@ -717,10 +717,10 @@ julia> dst=elect_region!(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
  0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
 ```
 """
-function select_region!(src::T, dst=nothing; new_size=nothing, 
+function select_region!(src, dst=nothing; new_size=nothing, 
                         center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(src)), 
-                        operator! =assign_to!) where {T}
-    pad_value = eltype(T)(pad_value)
+                        operator! =assign_to!)
+    pad_value = eltype(src)(pad_value)
 
     new_size = let 
         if isnothing(new_size)
@@ -767,7 +767,7 @@ function select_region!(src::T, dst=nothing; new_size=nothing,
         operator!(v_dst, v_src)  # for some strange reason this is faster (and of course more flexible) than the line below.
         # dst[range_dst...] .+= src[range_src...]
     end
-    return dst::T
+    return dst
 end
 
 struct MutablePaddedView{T,N,I,A} <: AbstractArray{T,N}
