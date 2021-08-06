@@ -135,11 +135,11 @@ julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region_view(src; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src)))
+function select_region_view(src::Array{T,N}; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src))) where {T,N}
     new_size = Tuple(expand_size(new_size, size(src)))
     center = Tuple(expand_size(center, ft_center_diff(size(src)).+1))
     oldcenter = ft_center_diff(new_size).+1
-    MutablePaddedView(PaddedView(pad_value, src,new_size, oldcenter .- center.+1));
+    MutablePaddedView(PaddedView(pad_value, src,new_size, oldcenter .- center.+1)) :: MutablePaddedView{T, N, NTuple{N,Base.OneTo{Int64}}, OffsetArrays.OffsetArray{T, N, Array{T, N}}} 
 end
 
 """
@@ -352,12 +352,12 @@ julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region(src; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1)
+function select_region(src::T; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where T
     new_size = Tuple(expand_size(new_size, size(src)))
     dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1)) # replace missing coordinates with the new center position
 
     pad_value = eltype(src)(pad_value)
     dst = fill(pad_value,new_size)
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
-    return dst
+    return dst::T
 end

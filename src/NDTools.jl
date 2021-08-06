@@ -1,6 +1,6 @@
 module NDTools
 using Core: add_int
-using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics
+using Base.Iterators, PaddedViews, LinearAlgebra, IndexFunArrays, Statistics, OffsetArrays
 
 include("MutablePaddedViews.jl")
 include("datatype_tools.jl")
