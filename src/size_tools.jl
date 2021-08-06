@@ -1,0 +1,215 @@
+# size_tools.jl
+
+export collect_dim, select_sizes, center_position, center_value
+export expand_add, expand_size, optional_posZ, reorient, single_dim_size
+
+"""
+    contains all functions that operate on Tuples, sizes and alike
+"""
+
+# Functions from ROIViews:
+
+"""
+    expand_add(t1,t2)  # adds t1 to t2 as a tuple and returns t2[n] for n > length(t1)
+
+adds the elements of the tuple t1 to t2 for components in t1 which exist for the rest just t2 is used.
+
+Example:
+```jldoctest
+julia> expand_add((1,2,3),(4,5,6,7,8,9))
+(5, 7, 9, 7, 8, 9)
+```
+"""
+function expand_add(t1,t2)  # adds t1 to t2 as a tuple and returns t2[n] for n > length(t1)
+    ((t+w for (t,w) in zip(t1,t2))..., (w for w in t2[length(t1)+1:end])...)
+    # ((t+w for (t,w) in zip(t1,t2))...,t2[length(t1)+1:end]...)
+end
+
+"""
+    expand_size(sz,sz2)
+
+expands a size tuple sz with the sizes as given in the tuple sz2 for positions which do not exist in sz. Typically one wants to
+obtain a tuple, which is achieved by a wrapping cast: `Tuple(expand_size(sz,sz2))`
+
+Example:
+```jldoctest
+julia> sz = expand_size((1,2,3),(4,5,6,7,8,9))
+Base.Generator{UnitRange{Int64}, var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}}(var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}((1, 2, 3), (4, 5, 6, 7, 8, 9), 3), 1:6)
+
+julia> Tuple(sz)
+(1, 2, 3, 7, 8, 9)
+```
+"""
+function expand_size(sz,sz2)
+    dims1 = length(sz)
+    dims2 = length(sz2)
+    ((d<=dims1) ? sz[d] : sz2[d] for d in 1:dims2)
+end
+
+# Functions from IndexFunArrays:
+
+"""
+    optional_posZ(x, offset)
+
+returns a z position `posZ = x[3]-offset[3]` if the tuple is long enough and `posZ=1` otherwise.
+This is useful for 3d routines, which should also work for 2d data.
+
+Example:
+```jldoctest
+julia> optional_posZ((5,5),(2,3))
+1
+
+julia> optional_posZ((5,5,5),(3,2,1))
+4
+```
+"""
+optional_posZ(x::NTuple{1,T}, offset::NTuple{1,T}) where {T,N} = 1
+optional_posZ(x::NTuple{2,T}, offset::NTuple{2,T}) where {T,N} = 1
+optional_posZ(x::NTuple{N,T}, offset::NTuple{N,T}) where {T,N} = x[3]-offset[3]
+
+"""
+    curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
+
+allows to remove the fix the first argument x in a function f with any number of arguments
+
+Example:
+```jldoctest
+julia> g = curry(+,10.0)
+#9 (generic function with 1 method)
+
+julia> g(3)
+13.0
+```
+"""
+curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
+
+# Functions for IndexFunArrays.utils
+
+"""
+    single_dim_size(dim::Int,dim_size::Int, tdim=dim)
+
+Returns a tuple (length `tdim`, which by default is dim) of singleton sizes except at the final position `dim`, which contains `dim_size`
+
+Arguments:
++ dim: non-zero position
++ dim_size: the value this non-zero position is given in the returned NTuple
++ tdim: total length of the returned NTuple
+
+Example
+```jldoctest
+julia> single_dim_size(4, 3)
+(1, 1, 1, 3)
+
+julia> single_dim_size(4, 5)
+(1, 1, 1, 5)
+
+julia> single_dim_size(2, 5)
+(1, 5)
+```
+"""
+function single_dim_size(dim::Int,dim_size::Int,tdim=dim)
+    Base.setindex(Tuple(ones(Int, tdim)),dim_size,dim)
+end
+
+"""
+    reorient(vec, dim)
+
+reorients a 1D vector `vec` along dimension `dim`.
+"""
+function reorient(vec, dim::Int)
+    reshape(vec, single_dim_size(dim, length(vec)))
+end
+
+"""
+    collect_dim(col, dim::Int)
+
+collects a collection `col` and reorients it into direction `dim`.
+
+Example:
+ ```jldoctest
+julia> collect_dim(1:5,2)
+1×5 Matrix{Int64}:
+ 1  2  3  4  5
+```
+"""
+function collect_dim(col, dim::Int)
+    reorient(collect(col), dim)
+end
+
+## Functions from FourierTools utils:
+
+"""
+    select_sizes(x::AbstractArray, dim; keep_dims=true)
+
+Additional size method to access the size at several dimensions
+in one call.
+`keep_dims` allows to return the other dimensions as singletons.
+
+Examples
+```jldoctest
+julia> x = ones((2,4,6,8, 10));
+
+julia> select_sizes(x, (2,3))
+(1, 4, 6, 1, 1)
+
+julia> select_sizes(x, 5)
+(1, 1, 1, 1, 10)
+
+julia> select_sizes(x, (5,))
+(1, 1, 1, 1, 10)
+
+julia> select_sizes(x, (2,3,4), keep_dims=false)
+(4, 6, 8)
+
+julia> select_sizes(x, (4,3,2), keep_dims=false)
+(8, 6, 4)
+```
+
+"""
+function select_sizes(x::AbstractArray{T},dim::NTuple{N,Int};
+                    keep_dims=true) where{T,N}
+    if ~keep_dims
+        return map(n->size(x,n),dim)
+    end
+    sz = ones(Int, ndims(x))
+    for n in dim
+        sz[n] = size(x,n) 
+    end
+    return Tuple(sz)
+end 
+
+function select_sizes(x::AbstractArray, dim::Integer; keep_dims=true)
+    select_sizes(x, Tuple(dim), keep_dims=keep_dims)
+end
+
+"""
+    center_position(field)
+
+position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+returns a tuple of ints which can be used for indexing.
+"""
+function center_position(field)
+    (size(field) .÷ 2).+1
+end
+
+"""
+    center_value(field)
+
+value of the `field` at the position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+"""
+function center_value(field)
+    field[center_position(field)...]
+end
+
+"""
+    ft_center_diff(s [, dims])
+
+Calculates how much each dimension must be shifted that the
+center frequency is at the Fourier center.
+This if for a normal `fft`
+"""
+function ft_center_diff(s::NTuple{N, T}, dims=ntuple(identity, Val(N))) where {N, T}
+    ntuple(i -> i ∈ dims ?  s[i] ÷ 2 : 0 , N)
+end
+
+
