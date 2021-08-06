@@ -352,12 +352,12 @@ julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region(src::T; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where T
+function select_region(src::AbstractArray{T,N}; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
     new_size = Tuple(expand_size(new_size, size(src)))
     dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1)) # replace missing coordinates with the new center position
 
     pad_value = eltype(src)(pad_value)
     dst = fill(pad_value,new_size)
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
-    return dst::T
+    return dst::Array{T,N}
 end
