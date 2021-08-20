@@ -118,7 +118,7 @@ Arguments:
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
 
 See also
-+ select_region(src; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src)))
++ [`select_region`](@ref)
 
 Examples
 ```jldoctest
@@ -256,7 +256,7 @@ The returned results is the destination (or newly created) array.
 Note that this version is rather fast, since it consists of only a sinlge sub-array assigment on views, avoiding copy operations.
 
 See also
-+ select_region(src; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src)))
++ [`select_region`](@ref)
 
 Examples:
 ```jdoctest
@@ -322,7 +322,7 @@ Arguments:
 The returned result is a newly allocated array of the same type as the src. This is currently faster that select_region_view().
 
 See also
-+ select_region_view(src; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src)))
++ [`select_region_view`](@ref)
 
 Examples
 ```jldoctest
