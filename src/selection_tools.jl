@@ -357,7 +357,16 @@ function select_region(src::AbstractArray{T,N}; new_size=size(src), center=size(
     dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1)) # replace missing coordinates with the new center position
 
     pad_value = eltype(src)(pad_value)
-    dst = fill(pad_value,new_size)
+ 
+    # if the new_size is fully enclosed, we can simply use similar
+    # since there is no pad
+    dst = let
+        if all(new_size .< size(src))
+            similar(src, new_size)
+        else
+            fill(pad_value,new_size)
+        end
+    end
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
     return dst::Array{T,N}
 end
