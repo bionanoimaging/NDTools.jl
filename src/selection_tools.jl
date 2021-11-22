@@ -354,17 +354,21 @@ julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
 """
 function select_region(src::AbstractArray{T,N}; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
     new_size = Tuple(expand_size(new_size, size(src)))
-    dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1)) # replace missing coordinates with the new center position
+    # replace missing coordinates with the new center position
+    dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1))
 
     pad_value = eltype(src)(pad_value)
  
     # if the new_size is fully enclosed, we can simply use similar
     # since there is no pad
     dst = let
-        if all(new_size .< size(src))
+        # check whether it is fully enclosing and if center is really in the middle
+        # otherwise some indices can be outside of the original array and would need
+        # to be padded
+        if all(new_size .<= size(src)) && center == size(src) .÷ 2 .+ 1
             similar(src, new_size)
         else
-            fill(pad_value,new_size)
+            fill(pad_value, new_size)
         end
     end
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
