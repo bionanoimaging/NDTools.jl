@@ -38,8 +38,8 @@ end
 """
     expand_size(sz,sz2)
 
-expands a size tuple sz with the sizes as given in the tuple sz2 for positions which do not exist in sz. Typically one wants to
-obtain a tuple, which is achieved by a wrapping cast: `Tuple(expand_size(sz,sz2))`
+Expands a size tuple `sz` with the sizes as given in the tuple `sz2` for positions which do not exist in `sz`. 
+Typically one wants to
 
 Example:
 ```jldoctest
@@ -50,10 +50,8 @@ julia> Tuple(sz)
 (1, 2, 3, 7, 8, 9)
 ```
 """
-function expand_size(sz,sz2)
-    dims1 = length(sz)
-    dims2 = length(sz2)
-    ((d<=dims1) ? sz[d] : sz2[d] for d in 1:dims2)
+function expand_size(sz::NTuple{M, T1},sz2::NTuple{N, T2}) where {M, N, T1, T2}
+    return ntuple(i -> i ≤ M ? sz[i] : sz2[i], Val(N))
 end
 
 # Functions from IndexFunArrays:
@@ -96,9 +94,10 @@ curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
 # Functions for IndexFunArrays.utils
 
 """
-    single_dim_size(dim::Int,dim_size::Int, tdim=dim)
+    single_dim_size(dim::Int, dim_size::Int, tdim=dim)
 
-Returns a tuple (length `tdim`, which by default is dim) of singleton sizes except at the final position `dim`, which contains `dim_size`
+Returns a tuple (length `tdim`, which by default is `dim`) of singleton sizes 
+except at the final position `dim`, which contains `dim_size`.
 
 Arguments:
 + dim: non-zero position
@@ -115,11 +114,24 @@ julia> single_dim_size(4, 5)
 
 julia> single_dim_size(2, 5)
 (1, 5)
+
+julia> single_dim_size(3,5, 4)
+(1, 1, 5, 1)
 ```
 """
-function single_dim_size(dim::Int,dim_size::Int,tdim=dim)
-    Base.setindex(Tuple(ones(Int, tdim)),dim_size,dim)
+function single_dim_size(dim::Int, dim_size::Int, tdim=dim)
+    Base.setindex(ntuple(i -> 1, Val(tdim)), dim_size, dim)::NTuple{tdim, Int}
 end
+
+"""
+    single_dim_size(::Val{dim}, dim_size::Int, tdim=::Val{dim})
+
+Same `single_dim_size` but type stable with `Val`.
+"""
+function single_dim_size(::Val{dim}, dim_size::Int, tdim=Val(dim)) where dim
+    Base.setindex(ntuple(i -> 1, tdim), dim_size, dim)
+end
+
 
 """
     reorient(vec, dim)
