@@ -1,6 +1,6 @@
 # size_tools.jl
 
-export collect_dim, select_sizes, center_position, center_value
+export collect_dim, select_sizes, select_sizes_squeeze, center_position, center_value
 export expand_add, expand_size, optional_posZ, reorient, single_dim_size
 
 """
@@ -99,6 +99,10 @@ curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
 Returns a tuple (length `tdim`, which by default is `dim`) of singleton sizes 
 except at the final position `dim`, which contains `dim_size`.
 
+!!! warning "Not type-stable!"
+    Is not type stable!
+
+
 Arguments:
 + dim: non-zero position
 + dim_size: the value this non-zero position is given in the returned NTuple
@@ -136,11 +140,57 @@ end
 """
     reorient(vec, dim)
 
-reorients a 1D vector `vec` along dimension `dim`.
+Reorients a 1D vector `vec` along dimension `dim`.
+
+!!! warning "Not type-stable!"
+    Is not type stable!
+
+```julia
+julia> reorient([1,2,3,4], 3)
+1×1×4 Array{Int64, 3}:
+[:, :, 1] =
+ 1
+
+[:, :, 2] =
+ 2
+
+[:, :, 3] =
+ 3
+
+[:, :, 4] =
+ 4
+```
 """
 function reorient(vec, dim::Int)
     reshape(vec, single_dim_size(dim, length(vec)))
 end
+
+"""
+    reorient(vec, ::Val{dim})
+
+Type stable version of `reorient`!
+
+```jldoctest
+reorient([1,2,3,4], Val(3))
+1×1×4 Array{Int64, 3}:
+[:, :, 1] =
+ 1
+
+[:, :, 2] =
+ 2
+
+[:, :, 3] =
+ 3
+
+[:, :, 4] =
+ 4
+```
+"""
+function reorient(vec, ::Val{dim}) where dim
+    reshape(vec, single_dim_size(Val(dim), length(vec)))
+end
+
+
 
 """
     collect_dim(col, dim::Int)
@@ -158,14 +208,33 @@ function collect_dim(col, dim::Int)
     reorient(collect(col), dim)
 end
 
+
+"""
+    collect_dim(col, dim::Val)
+
+Type stable version!
+
+```jldoctest
+julia> collect_dim(1:5, Val(2))
+1×5 Matrix{Int64}:
+ 1  2  3  4  5
+```
+
+"""
+function collect_dim(col, dim::Val)
+    reorient(collect(col), dim)
+end
+
+
+
 ## Functions from FourierTools utils:
 
 """
-    select_sizes(x::AbstractArray, dim; keep_dims=true)
+    select_sizes(x::AbstractArray, dim)
 
 Additional size method to access the size at several dimensions
 in one call.
-`keep_dims` allows to return the other dimensions as singletons.
+Keep singleton dimensions.
 
 Examples
 ```jldoctest
@@ -179,30 +248,48 @@ julia> select_sizes(x, 5)
 
 julia> select_sizes(x, (5,))
 (1, 1, 1, 1, 10)
-
-julia> select_sizes(x, (2,3,4), keep_dims=false)
-(4, 6, 8)
-
-julia> select_sizes(x, (4,3,2), keep_dims=false)
-(8, 6, 4)
 ```
-
 """
-function select_sizes(x::AbstractArray{T},dim::NTuple{N,Int};
-                    keep_dims=true) where{T,N}
-    if ~keep_dims
-        return map(n->size(x,n),dim)
-    end
-    sz = ones(Int, ndims(x))
+function select_sizes(x::AbstractArray{T, M}, dim::NTuple{N,Int}) where {T,N,M}
+    sz = ntuple(i -> 1, Val(M))
     for n in dim
-        sz[n] = size(x,n) 
+        sz = Base.setindex(sz, size(x, n), n)
     end
     return Tuple(sz)
 end 
 
-function select_sizes(x::AbstractArray, dim::Integer; keep_dims=true)
-    select_sizes(x, Tuple(dim), keep_dims=keep_dims)
+
+function select_sizes(x::AbstractArray, dim::Integer)
+    select_sizes(x, (dim,))
 end
+
+"""
+    select_sizes_squeeze(x::AbstractArray, dim; keep_dims=true)
+
+Additional size method to access the size at several dimensions
+in one call.
+Remove singleton dimensions.
+
+See also [`select_sizes`](@ref select_sizes) which does not remove singleton dimensions.
+
+Examples
+```jldoctest
+julia> select_sizes_squeeze(randn((5,6,7)), (2,3))
+(6, 7)
+
+julia> select_sizes_squeeze(randn((5,6,7)), 2)
+(6,)
+```
+"""
+function select_sizes_squeeze(x::AbstractArray{T, M}, dim::NTuple{N,Int}) where {T,N,M}
+    return map(n -> size(x,n), dim)
+end 
+
+
+function select_sizes_squeeze(x::AbstractArray, dim::Integer)
+    select_sizes_squeeze(x, (dim,))
+end
+
 
 """
     center_position(field)

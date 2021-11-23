@@ -16,8 +16,10 @@ end
 
 @testset "Test select_sizes" begin
     @test (1, 3, 2) == select_sizes(randn((4,3,2)), (2,3))
-    @test (3, 2) == select_sizes(randn((4,3,2)), (2,3), keep_dims=false)
-    @test (1, ) == select_sizes(randn((1,)), (1,), keep_dims=false)
+    @test (1, 3, 1) == select_sizes(randn((4,3,2)), 2)
+    @test (3, 2) == select_sizes_squeeze(randn((4,3,2)), (2,3))
+    @test (1, ) == select_sizes_squeeze(randn((1,)), (1,))
+    @test (1, ) == select_sizes_squeeze(randn((1,)), 1)
 end
 
 @testset "Test single_dim_size" begin
@@ -31,6 +33,7 @@ end
 
 @testset "Test reorient" begin
     @test size(reorient([1,2,3,4], 3)) == (1,1,4)
+    @test size(reorient([1,2,3,4], Val(3))) == (1,1,4)
     @test reorient([1,2,3,4], 2)[:] == [1,2,3,4]
 end
 
@@ -38,6 +41,7 @@ end
     @test (1,1,1,5) == size(collect_dim((3,4,5,6,7),4))
     @test collect_dim((3,4,5,6,7),4)[1,1,1,3] == 5
     @test collect_dim(1:5,4)[:] == [1,2,3,4,5]
+    @test collect_dim(1:5, Val(4))[:] == [1,2,3,4,5]
 end
 
 @testset "Test expand_size" begin
