@@ -12,17 +12,27 @@ export expand_add, expand_size, optional_posZ, reorient, single_dim_size
 """
     expand_add(t1,t2)  # adds t1 to t2 as a tuple and returns t2[n] for n > length(t1)
 
-adds the elements of the tuple t1 to t2 for components in t1 which exist for the rest just t2 is used.
+Adds the elements of the tuple `t1` to `t2`.
+If `t1` is shorter than `t2`, we take the tail of `t2` as elements.
+Output length is always the same length as `t2`
 
 Example:
 ```jldoctest
 julia> expand_add((1,2,3),(4,5,6,7,8,9))
 (5, 7, 9, 7, 8, 9)
+
+julia> expand_add((1,1), (0,))
+(1,)
+
+julia> expand_add((1,2), (0,0))
+(1, 2)
+
+julia> expand_add((1,2), (0,0,0))
+(1, 2, 0)
 ```
 """
-function expand_add(t1,t2)  # adds t1 to t2 as a tuple and returns t2[n] for n > length(t1)
-    ((t+w for (t,w) in zip(t1,t2))..., (w for w in t2[length(t1)+1:end])...)
-    # ((t+w for (t,w) in zip(t1,t2))...,t2[length(t1)+1:end]...)
+function expand_add(t1::NTuple{M, T1},t2::NTuple{N, T2}) where {M, N, T1, T2} 
+    return ntuple(i -> i ≤ M ? t1[i] + t2[i] : t2[i], Val(N))
 end
 
 """
