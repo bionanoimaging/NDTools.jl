@@ -6,13 +6,20 @@ export moment_proj_normed
 """
     radial_mean(data; maxbin=nothing, bin_step=nothing, pixelsize=nothing)
 
-calculates the radial mean of a dataset `data`.
-returns a tuple of the radial_mean and the bin_centers.
+Calculates the radial mean of a dataset `data`.
+Returns a tuple of the radial_mean and the bin_centers.
 
-Arguments:
-+ data: data to radially average
-+ maxbin: a maximum bin value
-+ bin_step: optionally defines the step between the bins
+ ## Arguments:
++ `data`: data to radially average
++ `maxbin`: a maximum bin value
++ `bin_step`: optionally defines the step between the bins
+
+
+## Examples
+```julia-repl
+julia> radial_mean([5, 1, 1, 3, 15])
+([1.0, 2.0, 10.0], [0.5, 1.5, 2.5])
+```
 """
 function radial_mean(data; nbins=nothing, bin_step=nothing, offset=CtrFT, scale=nothing)
     if isnothing(scale)
@@ -45,7 +52,7 @@ end
 """
     Δ_phase(arr, dim)
 
-calculates the relative phase slope along dimension `dim` of a non-zero array `arr` without wrap-around problems.
+Calculates the relative phase slope along dimension `dim` of a non-zero array `arr` without wrap-around problems.
 
 Arguments:
 + arr: array of which to evaluate the phase slope
@@ -57,7 +64,19 @@ function Δ_phase(arr, dim)
     return angle.(arr[no_shift...] ./ arr[shift...]) # this is a complex-valued division to obtain the relative phase angle!
 end
 
+"""
+    moment_proj(data, h=3; pdims=3)
 
+Performs a projection over the `h`-th moment of the data along dimension(s) `pdims`.
+See also [`moment_proj_normed`](@ref NDTools.moment_proj_normed)
+
+## Example
+```jldoctest
+julia> NDTools.moment_proj([1 3; 2 4], 2, pdims=(1,))
+1×2 Matrix{Float64}:
+ 0.25  0.25
+```
+"""
 function moment_proj(data, h=3; pdims=3)
     mdata = mean(data, dims=pdims)
     return mean((data .- mdata).^h, dims=pdims)
@@ -66,7 +85,15 @@ end
 """
     moment_proj_normed(data, h=3; pdims=3)
 
-performes a projection over the `h`-th moment of the data along dimension(s) `pdims` normed by the variance.
+Performs a projection over the `h`-th moment of the data along dimension(s) `pdims` normed by the variance.
+
+
+## Example
+```jldoctest
+julia> NDTools.moment_proj_normed([1 3; 2 4], 2, pdims=(1,))
+1×2 Matrix{Float64}:
+ 0.5  0
+```
 """
 function moment_proj_normed(data, h=3; pdims=3)
     moment_proj(data, h, pdims=pdims) ./ (moment_proj(data,2, pdims=pdims) .^((h-1)/2))

@@ -23,7 +23,7 @@ default_type(::Type{T}, def_T) where{T} = T # all other types remain to be the s
 """
     get_complex_datatype(x)
 
-returns the complex-valued datatyp which encompasses the eltype
+Returns the complex-valued datatype which encompasses the `eltype`
 
 Examples:
 ```jdoctest
@@ -37,5 +37,3 @@ ComplexF64 (alias for Complex{Float64})
 get_complex_datatype(x :: Number) = Complex{typeof(x)}
 get_complex_datatype(x :: Complex ) = typeof(x)
 get_complex_datatype(x :: AbstractArray) = get_complex_datatype(eltype(x)(0))
-
-
