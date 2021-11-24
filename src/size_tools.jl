@@ -321,11 +321,3 @@ function ft_center_diff(s::NTuple{N, T}, dims=ntuple(identity, Val(N))) where {N
     ntuple(i -> i ∈ dims ?  s[i] ÷ 2 : 0 , N)
 end
 
-
-function bin(arr, factors=Tuple(2 .*ones(Int64,ndims(arr))))
-    sz = size(arr) # old size
-    sn = sz .÷ factors # new size
-    s2 = Tuple((isodd(i) ? factors[(i+1)/2] : sn[i/2] for i in 1:2*length(sz)))
-    dims = Tuple(2 .*(1:length(sz)) .- 1)
-    reshape(sum(reshape(arr,s2),dims=dims),sn)
-end
