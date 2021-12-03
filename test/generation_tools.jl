@@ -1,14 +1,13 @@
-@testset "Test soft_theta" begin 
-    @test soft_theta(0.01) == 1.0
-    @test soft_theta(-0.01) == 0.0
-    @test soft_theta(-0.0) ≈ 0.5
-    @test soft_theta(1/3.0, 1.0) ≈ 0.75
-end
+@testset "Generation tools" begin
 
-@testset "Test soft_delta" begin 
-    @test soft_delta(0.01) == 0.0
-    @test soft_delta(-0.01) == 0.0
-    @test soft_delta(-0.0) ≈ 1.0
-    @test soft_delta(1/3.0, 1.0) ≈ 0.75
-end
+    t = (1,2)
+    @test ϕ_tuple(t::NTuple) ≈ atan(2, 1)
+    t = (1.23,129.23)
+    @test ϕ_tuple(t::NTuple) ≈ atan(t[2], t[1])
 
+    @test idx_to_dim([(1, 2) (3, 4); (5, 6) (7, 8)]) == [1 3; 5 7;;; 2 4; 6 8]
+
+    @test idx_to_dim([(1, 2), (3, 4)]) == [1 2; 3 4]
+
+
+end
