@@ -57,23 +57,23 @@ end
 # Functions from IndexFunArrays:
 
 """
-    optional_posZ(x, offset)
+    optional_pos_z(x, offset)
 
-returns a z position `posZ = x[3]-offset[3]` if the tuple is long enough and `posZ=1` otherwise.
-This is useful for 3d routines, which should also work for 2d data.
+Returns a `z` position `posZ = x[3]-offset[3]` if the tuple is long enough and `posZ=1` otherwise.
+This is useful for 3D routines, which should also work for 2d data.
 
 Example:
 ```jldoctest
-julia> optional_posZ((5,5),(2,3))
+julia> optional_pos_z((5,5),(2,3))
 1
 
-julia> optional_posZ((5,5,5),(3,2,1))
+julia> optional_pos_z((5,5,5),(3,2,1))
 4
 ```
 """
-optional_posZ(x::NTuple{1,T}, offset::NTuple{1,T}) where {T,N} = 1
-optional_posZ(x::NTuple{2,T}, offset::NTuple{2,T}) where {T,N} = 1
-optional_posZ(x::NTuple{N,T}, offset::NTuple{N,T}) where {T,N} = x[3]-offset[3]
+optional_pos_z(x::NTuple{1,T}, offset::NTuple{1,T}) where {T,N} = 1
+optional_pos_z(x::NTuple{2,T}, offset::NTuple{2,T}) where {T,N} = 1
+optional_pos_z(x::NTuple{N,T}, offset::NTuple{N,T}) where {T,N} = x[3]-offset[3]
 
 """
     curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
@@ -304,7 +304,7 @@ end
 """
     center_value(field)
 
-value of the `field` at the position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
+Value of the `field` at the position of the center of the `field` according to the Fourier-space nomenclature (pixel right of center for even-sized arrays).
 """
 function center_value(field)
     field[center_position(field)...]
@@ -315,7 +315,7 @@ end
 
 Calculates how much each dimension must be shifted that the
 center frequency is at the Fourier center.
-This if for a normal `fft`
+
 """
 function ft_center_diff(s::NTuple{N, T}, dims=ntuple(identity, Val(N))) where {N, T}
     ntuple(i -> i ∈ dims ?  s[i] ÷ 2 : 0 , N)

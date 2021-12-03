@@ -56,9 +56,10 @@ end
     @test expand_add((1,2), (0,0, 0)) == (1,2, 0) 
 end
 
-@testset "Test optional_posZ" begin
-    @test NDTools.optional_posZ((1,2,3,4), (1,1,1,1)) == 2
-    @test NDTools.optional_posZ((5,5), (1,1)) == 1
+@testset "Test optional_pos_z" begin
+    @test NDTools.optional_pos_z((1,2,3,4), (1,1,1,1)) == 2
+    @test NDTools.optional_pos_z((5,5), (1,1)) == 1
+    @test NDTools.optional_pos_z((5,), (1,)) == 1
 end
 
 @testset "Test curry" begin
