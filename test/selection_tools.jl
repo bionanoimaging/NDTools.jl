@@ -28,9 +28,16 @@
     end
 
 
+    @testset "Flatten trailing dims" begin
+        @test flatten_trailing_dims(ones((1, 1, 2, 2)), Val(1)) == [1.0, 1.0, 1.0, 1.0]
+        @test flatten_trailing_dims(ones((1, 1, 2, 2)), Val(2)) == [1.0 1.0 1.0 1.0]
+        @test flatten_trailing_dims(ones((1, 1, 2, 2)), Val(3)) == [1.0;;; 1.0;;; 1.0;;; 1.0]
+        @test flatten_trailing_dims(ones((1, 1, 2, 2)), Val(4)) == [1.0;;; 1.0;;;; 1.0;;; 1.0]
+    end
+
+    
     @testset "Test expand_dims" begin
         function f(s, N)
-            @test expand_dims(randn(s), N + length(s))|> size == (s..., ones(Int,N)...)
             @test expand_dims(randn(s), Val(N + length(s)))|> size == (s..., ones(Int,N)...)
         end
         f((1,2,3), 2)
