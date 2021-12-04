@@ -4,6 +4,7 @@ using PaddedViews, IndexFunArrays
 Random.seed!(42)
 
 # include("utils.jl")
+includet("offset_types.jl")
 include("MutablePaddedViews.jl")
 include("datatype_tools.jl")
 include("size_tools.jl")
