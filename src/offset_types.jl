@@ -68,7 +68,7 @@ julia> center((1,2,3,4), CenterLast)
 (1, 2, 3, 4)
 
 julia> center((1,2,3,4), CenterMid)
-(0.5, 1.0, 1.5, 2.0)
+(1, 1.5, 2, 2.5)
 
 julia> center((1,2,3,4), CenterFT)
 (1, 2, 2, 3)
@@ -81,7 +81,7 @@ center(size::NTuple{N, T},
        ::Type{CenterLast}) where {T, N} = ntuple(i -> size[i], Val(N))
 
 center(size::NTuple{N, T}, 
-       ::Type{CenterMid}) where {T, N} = ntuple(i -> size[i] / 2, Val(N))
+       ::Type{CenterMid}) where {T, N} = ntuple(i -> (1 + size[i]) / 2, Val(N))
 
 center(size::NTuple{N, T}, 
        ::Type{CenterFT}) where {T, N} = ntuple(i -> size[i] ÷ 2 + 1, Val(N))
