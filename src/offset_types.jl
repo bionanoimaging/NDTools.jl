@@ -121,4 +121,3 @@ julia> center((1,3), (1,1))
 """
 center(size::NTuple{N, T}, 
        ctr::NTuple{N, T}) where {T, N} = ctr 
-
