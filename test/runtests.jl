@@ -1,10 +1,10 @@
 using Random, Test
 using NDTools
-using PaddedViews, IndexFunArrays
+using PaddedViews
 Random.seed!(42)
 
 # include("utils.jl")
-includet("offset_types.jl")
+include("offset_types.jl")
 include("MutablePaddedViews.jl")
 include("datatype_tools.jl")
 include("size_tools.jl")
