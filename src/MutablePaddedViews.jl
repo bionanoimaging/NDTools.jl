@@ -20,4 +20,3 @@ end
 Base.@propagate_inbounds function Base.getindex(A::MutablePaddedView{T,N}, pos::Vararg{Int,N}) where {T,N}
     getindex(A.data, pos...)
 end
-

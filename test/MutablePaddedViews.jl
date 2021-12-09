@@ -1,11 +1,22 @@
-@testset "Test MutablePaddedView" begin
-    v = NDTools.MutablePaddedView(PaddedView(22.2, rand(5,6,10), (10,10,10), (3,4,5)));
-    @test v[1,1,1] == 22.2
-    v[5,5,5] = 10.0
-    @test v[5,5,5] == 10.0
-    v[4,4,4] = 10.0
-    @test v[4,4,4] == 22.2
-    v[5:6,5:10,5:10] .= 11.0
-    @test v[6,7,7] == 11.0
+## MutablePaddedViews.jl
+
+struct MutablePaddedView{T,N,I,A} <: AbstractArray{T,N}
+    data::PaddedView{T,N,I,A}
 end
 
+Base.size(A::MutablePaddedView) = size(A.data)
+# Base.ndims(A::MutablePaddedView) = ndims(A.data)
+
+# The change below makes select_region into a writable region
+Base.@propagate_inbounds function Base.setindex!(A::MutablePaddedView{T,N}, v, pos::Vararg{Int,N}) where {T,N}
+    @boundscheck checkbounds(A.data, pos...)
+    if Base.checkbounds(Bool, A.data.data, pos...)
+        return setindex!(A.data.data, v, pos... )
+    else
+        return A.data.fillvalue
+    end
+end
+
+Base.@propagate_inbounds function Base.getindex(A::MutablePaddedView{T,N}, pos::Vararg{Int,N}) where {T,N}
+    getindex(A.data, pos...)
+end

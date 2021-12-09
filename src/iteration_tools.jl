@@ -6,7 +6,9 @@ export apply_tuple_list
 """
     cast_iter(vals::Matrix)
 
-a conveniance function used to make number itarable via repeated. This is used when dealing with multiple arguments where one can be optionally an iterable.
+A convenience function used to make number iterable via repeated. 
+This is used when dealing with multiple arguments where one can be 
+optionally an iterable.
 A Tuple is also interpreted as repeating this tuple over and over.
 """
 function cast_iter(vals::Matrix)

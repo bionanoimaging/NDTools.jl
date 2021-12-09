@@ -49,13 +49,9 @@ end
 
 """
     expand_dims(x, ::Val{N})
-    expand_dims(x, N::Number)
 
-expands the dimensions of an array to a given number of dimensions.
+Expands the dimensions of an array to a given number of dimensions.
 
-Try to prefer the `Val` version because this is type-stable.
-`Val(N)` encapsulates the number in a type from which the compiler
-can then infer the return type.
 
 Examples
 The result is a 5D array with singleton dimensions at the end
@@ -70,37 +66,26 @@ julia> expand_dims(ones((1,2,3)), Val(5))
 
 [:, :, 3, 1, 1] =
  1.0  1.0
-
-julia> expand_dims(ones((1,2,3)), 5)
-1×2×3×1×1 Array{Float64, 5}:
-[:, :, 1, 1, 1] =
- 1.0  1.0
-
-[:, :, 2, 1, 1] =
- 1.0  1.0
-
-[:, :, 3, 1, 1] =
- 1.0  1.0
 ```
 """
-function expand_dims(x, N::Number)
-    return reshape(x, (size(x)..., ntuple(x -> 1, (N - ndims(x)))...))
+function expand_dims(x, ::Val{N}) where N
+    return reshape(x, (size(x)..., ntuple(x -> 1, Val(N - ndims(x)))...))
 end
 
-function expand_dims(x, ::Val{N}) where N
-    return reshape(x, (size(x)..., ntuple(x -> 1, (N - ndims(x)))...))
-end
 
 """
-    flatten_trailing_dims(arr, max_dim=length(arr)÷2+1)
+    flatten_trailing_dims(arr, max_dim=Val(max_dim))
 
-flattens (squeezes) the trailing dims. `max_dim` denotes the last dimension to keep. The implementation
-uses reshape and thus returns a modified view of the array referring to the same data. 
+Flattens (squeezes) the trailing dims. `max_dim` denotes the last dimension to keep. 
+The implementation uses reshape and thus returns a modified view of the array 
+referring to the same data. 
 By default max_dim is adjusted such that a 2N array is squeezed into an N+1 array as needed for a scan.
 """
-function flatten_trailing_dims(arr, max_dim)
+function flatten_trailing_dims(arr::AbstractArray,
+                               ::Val{max_dim}) where max_dim
     reshape(arr,(size(arr)[1:max_dim-1]...,prod(size(arr)[max_dim:end])))
 end
+
 
 """
     select_region_view(src; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src)))
