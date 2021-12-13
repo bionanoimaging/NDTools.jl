@@ -9,6 +9,6 @@
 
     @test center((1,2,3,4), CenterFirst) == (1,1,1,1)
     @test center((1,2,3,4), CenterLast) == (1,2,3,4)
-    @test center((1,2,3,4), CenterMid) == (1,1.5,2,2.5)
+    @test center((1,2,3,4), CenterMiddle) == (1,1.5,2,2.5)
     @test center((1,2,3,4), CenterFT) == (1,2,2,3)
 end
