@@ -69,16 +69,16 @@
     @testset "Test assignment functions" begin
         dst = ones(10,10)
         src = ones(10,10)
-        @test all(assign_to!(dst,src) .== 1)
+        @test all(NDTools.assign_to!(dst,src) .== 1)
         dst = ones(10,10)
-        @test all(add_to!(dst,src) .== 2)
+        @test all(NDTools.add_to!(dst,src) .== 2)
         dst = ones(10,10)
-        @test all(sub_to!(dst,src) .== 0)
+        @test all(NDTools.sub_to!(dst,src) .== 0)
         src = ones(10,10) .* 2
         dst = ones(10,10) .* 2
-        @test all(mul_to!(dst,src) .== 4)
+        @test all(NDTools.mul_to!(dst,src) .== 4)
         src = ones(10,10) .* 2
         dst = ones(10,10)
-        @test all(div_to!(dst,src) .== 0.5)
+        @test all(NDTools.div_to!(dst,src) .== 0.5)
     end
 

@@ -1,6 +1,6 @@
 ## selection_tools.jl
-export selectdim, expand_dims, select_region_view, select_region, select_region!, flatten_trailing_dims
-export assign_to!, add_to!, sub_to!, mul_to!, div_to!
+export expand_dims, select_region_view, select_region, select_region!, flatten_trailing_dims
+export slice
 
 """
     slice(arr, dim, index)
@@ -30,13 +30,13 @@ end
 """
     slice_indices(a, dim, index)
 
-Arguments:
+ # Arguments:
 `a` should be the axes obtained by `axes(arr)` of an array.
 `dim` is the dimension to be selected and `index` the index of it.
 
 Examples
 ```jldoctest
-julia> FourierTools.slice_indices((1:10, 1:20, 1:12, 1:33), 1, 3)
+julia> NDTools.slice_indices((1:10, 1:20, 1:12, 1:33), 1, 3)
 (3:3, 1:20, 1:12, 1:33)
 ```
 """
@@ -107,10 +107,8 @@ See also
 
 Examples
 ```jldoctest
-julia> using NDTools
-
-julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
-7×7 PaddedView(0.0, OffsetArray(::Matrix{Float64}, 4:6, 2:4), (Base.OneTo(7), Base.OneTo(7))) with eltype Float64:
+julia> select_region_view(ones(3,3),new_size=(7,7),center=(1,3))
+7×7 NDTools.MutablePaddedView{Float64, 2, Tuple{Base.OneTo{Int64}, Base.OneTo{Int64}}, OffsetArrays.OffsetMatrix{Float64, Matrix{Float64}}}:
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
@@ -311,8 +309,6 @@ See also
 
 Examples
 ```jldoctest
-julia> using NDTools
-
 julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
 7×7 Matrix{Float64}:
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
@@ -323,11 +319,17 @@ julia> select_region(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  1.0  1.0  1.0  0.0  0.0  0.0
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 
- julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zeros to a size of (10,10), but place original center at the corner
+julia> a = ones((3,3))
+3×3 Matrix{Float64}:
+ 1.0  1.0  1.0
+ 1.0  1.0  1.0
+ 1.0  1.0  1.0
+
+julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zeros to a size of (10,10), but place original center at the corner
 10×10 Matrix{Float64}:
- 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0

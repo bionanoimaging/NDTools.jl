@@ -6,8 +6,8 @@ export center
 
 Abstract supertype for all Center types.
 
-See [`CenterFirst`](@ref CenterFirst), [`CenterLast`](@ref CenterLast),
-[`CenterMiddle`](@ref CenterMiddle), [`CenterFT`](@ref CenterFT).
+See [`CenterFirst`](@ref), [`CenterLast`](@ref),
+[`CenterMiddle`](@ref), [`CenterFT`](@ref).
 """
 abstract type Center end 
 
@@ -60,8 +60,8 @@ struct CenterFT <: Center end
 
 Return the corresponding center of an array with size `sz`.
 Depending on the `Center` type the center is chosen.
-See [`CenterFirst`](@ref CenterFirst), [`CenterLast`](@ref CenterLast),
-[`CenterMiddle`](@ref CenterMiddle), [`CenterFT`](@ref CenterFT).
+See [`CenterFirst`](@ref), [`CenterLast`](@ref),
+[`CenterMiddle`](@ref), [`CenterFT`](@ref).
 
 ```jldoctest
 julia> center((1,2,3,4), CenterFirst)
