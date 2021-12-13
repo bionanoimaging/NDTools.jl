@@ -1,7 +1,7 @@
 # size_tools.jl
 
 export collect_dim, select_sizes, select_sizes_squeeze, center_position, center_value
-export expand_add, expand_size, optional_posZ, reorient, single_dim_size
+export expand_add, expand_size, optional_pos_z, reorient, single_dim_size
 
 """
     contains all functions that operate on Tuples, sizes and alike
@@ -264,7 +264,7 @@ function select_sizes(x::AbstractArray, dim::Integer)
 end
 
 """
-    select_sizes_squeeze(x::AbstractArray, dim; keep_dims=true)
+    select_sizes_squeeze(x::AbstractArray, dim)
 
 Additional size method to access the size at several dimensions
 in one call.

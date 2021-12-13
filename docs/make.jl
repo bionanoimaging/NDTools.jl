@@ -6,7 +6,9 @@ makedocs(modules = [NDTools],
          sitename = "NDTools.jl", 
          pages = Any[
             "NDTools.jl" => "index.md",
-            "Utility functions" => "util.md",
+            "Center Methods" => "center.md",
+            "Select Regions" => "select_region.md",
+            "Dimensionality Functions" => "dims.md",
          ]
         )
 

@@ -1,19 +1,22 @@
-export CenterFirst, CenterLast, CenterMid, CenterFT
+export CenterFirst, CenterLast, CenterMiddle, CenterFT
 export center
 
 """
     Center
 
 Abstract supertype for all Center types.
+
+See [`CenterFirst`](@ref), [`CenterLast`](@ref),
+[`CenterMiddle`](@ref), [`CenterFT`](@ref).
 """
 abstract type Center end 
 
 """
     CenterFirst
 
-Type to indicate the the center should be 
+Type to indicate that the center should be 
 at the first entry of the array.
-This corresponds to the inidices `(1,1,1,...)`.
+This corresponds to the indices `(1,1,1,...)`.
 """
 struct CenterFirst <: Center end
 
@@ -21,33 +24,33 @@ struct CenterFirst <: Center end
 """
     CenterEnd
 
-Type to indicate the the center should be 
+Type to indicate that the center should be 
 at the last entry of the array.
 This corresponds in an array with size `(5,4,3)` to 
-the inidices `(5,4,3)`.
+the indices `(5,4,3)`.
 """
 struct CenterLast <: Center end
 
 
 """
-    CenterMid
+    CenterMiddle
 
-Type to indicate the the center should be 
+Type to indicate that the center should be 
 at the mathematical center of the array (if interpreted
 as a N dimensional volume).
 This corresponds in an array with size `(5,4,3)` to 
-the inidices `(3,2.5,2)`.
+the indices `(3,2.5,2)`.
 """
-struct CenterMid <: Center end
+struct CenterMiddle <: Center end
 
 
 """
     CenterFT
 
-Type to indicate the the center should be 
+Type to indicate that the center should be 
 at the center defined in the FFT sense.
 This corresponds in an array with size `(5,4,3)` to 
-the inidices `(3,3,2)`.
+the indices `(3,3,2)`.
 """
 struct CenterFT <: Center end
 
@@ -57,8 +60,8 @@ struct CenterFT <: Center end
 
 Return the corresponding center of an array with size `sz`.
 Depending on the `Center` type the center is chosen.
-See [`CenterFirst`](@ref CenterFirst), [`CenterLast`](@ref CenterLast),
-[`CenterMid`](@ref CenterMid), [`CenterFT`](@ref CenterFT).
+See [`CenterFirst`](@ref), [`CenterLast`](@ref),
+[`CenterMiddle`](@ref), [`CenterFT`](@ref).
 
 ```jldoctest
 julia> center((1,2,3,4), CenterFirst)
@@ -67,7 +70,7 @@ julia> center((1,2,3,4), CenterFirst)
 julia> center((1,2,3,4), CenterLast)
 (1, 2, 3, 4)
 
-julia> center((1,2,3,4), CenterMid)
+julia> center((1,2,3,4), CenterMiddle)
 (1, 1.5, 2, 2.5)
 
 julia> center((1,2,3,4), CenterFT)
@@ -81,7 +84,7 @@ center(size::NTuple{N, T},
        ::Type{CenterLast}) where {T, N} = ntuple(i -> size[i], Val(N))
 
 center(size::NTuple{N, T}, 
-       ::Type{CenterMid}) where {T, N} = ntuple(i -> (1 + size[i]) / 2, Val(N))
+       ::Type{CenterMiddle}) where {T, N} = ntuple(i -> (1 + size[i]) / 2, Val(N))
 
 center(size::NTuple{N, T}, 
        ::Type{CenterFT}) where {T, N} = ntuple(i -> size[i] ÷ 2 + 1, Val(N))
