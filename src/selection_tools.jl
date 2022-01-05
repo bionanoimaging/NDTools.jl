@@ -282,8 +282,9 @@ function select_region!(src, dst; new_size=size(dst),
     if !isempty(range_dst)
         v_src = @view src[range_src...]
         v_dst = @view dst[range_dst...]
-        operator!(v_dst, v_src)  # for some strange reason this is faster (and of course more flexible) than the line below.
-        # dst[range_dst...] .+= src[range_src...]
+        # more generic than the line below
+        operator!(v_dst, v_src) 
+        # dst[range_dst...] .+= view(src, range_src...)
     end
     return dst
 end
@@ -355,9 +356,10 @@ function select_region(src::AbstractArray{T,N}; new_size=size(src), center=size(
         if all(new_size .<= size(src)) && center == size(src) .÷ 2 .+ 1
             similar(src, new_size)
         else
-            fill(pad_value, new_size)
+            arr_n = similar(src, new_size)
+            fill!(arr_n, pad_value)
         end
     end
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
-    return dst::Array{T,N}
+    return dst
 end
