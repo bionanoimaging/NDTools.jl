@@ -7,8 +7,8 @@
 
 
 ## Features
-A lightweight package for utility functions for working with multi-dimensional data. It provides efficient versions to deal with
-sizes, midpoints etc. of multidimensional data.
+A lightweight package delivering utility functions for working with multi-dimensional data. It provides efficient versions to deal with
+sizes, midpoints etc. of multidimensional data. See the [documentation](https://bionanoimaging.github.io/NDTools.jl/dev/) for more.
 
 ## Installation
 ```
