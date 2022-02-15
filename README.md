@@ -24,5 +24,5 @@ julia> ]add NDTools
 [CI-img]: https://github.com/bionanoimaging/NDTools.jl/actions/workflows/ci.yml/badge.svg
 [CI-url]: https://github.com/bionanoimaging/NDTools.jl/actions/workflows/ci.yml
 
-[codecov-img]: https://codecov.io/gh/bionanoimaging/NDTools.jl/branch/main/graph/badge.svg?token=32hzAnelbC
+[codecov-img]: https://codecov.io/gh/bionanoimaging/NDTools.jl/branch/main/graph/badge.svg?token=y4mLYZ2PGy
 [codecov-url]: https://codecov.io/gh/bionanoimaging/NDTools.jl
