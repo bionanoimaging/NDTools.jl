@@ -9,6 +9,7 @@ makedocs(modules = [NDTools],
             "Center Methods" => "center.md",
             "Select Regions" => "select_region.md",
             "Dimensionality Functions" => "dims.md",
+            "Reverse views" => "reverse_view.md",
          ]
         )
 
