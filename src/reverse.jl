@@ -43,8 +43,9 @@ function reverse_view(A::AbstractArray{T, N};
         if i ∈ dims
             lastindex(A, i):-1:firstindex(A, i)
         else
-            firstindex(A, i):lastindex(A, i)
+            # :1: is important so that both branches are StepRange{Int64, Int64}
+            firstindex(A, i):1:lastindex(A, i)
         end
     end
-    return view(A, out_inds...)
+    return view(A, out_inds...)::AbstractArray{T, N}
 end
