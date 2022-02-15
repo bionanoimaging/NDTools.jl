@@ -13,4 +13,4 @@ makedocs(modules = [NDTools],
          ]
         )
 
-deploydocs(repo = "github.com/RainerHeintzmann/NDTools.jl.git", devbranch="main")
+deploydocs(repo = "github.com/bionanoimaging/NDTools.jl.git", devbranch="main")
