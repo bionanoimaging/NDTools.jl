@@ -16,13 +16,13 @@ julia> ]add NDTools
 ```
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-pink.svg
-[docs-dev-url]: https://RainerHeintzmann.github.io/NDTools.jl/dev/
+[docs-dev-url]: https://bionanoimaging.github.io/NDTools.jl/dev/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-darkgreen.svg
-[docs-stable-url]: https://RainerHeintzmann.github.io/NDTools.jl/stable/
+[docs-stable-url]: https://bionanoimaging.github.io/NDTools.jl/stable/
 
-[CI-img]: https://github.com/RainerHeintzmann/NDTools.jl/actions/workflows/ci.yml/badge.svg
-[CI-url]: https://github.com/RainerHeintzmann/NDTools.jl/actions/workflows/ci.yml
+[CI-img]: https://github.com/bionanoimaging/NDTools.jl/actions/workflows/ci.yml/badge.svg
+[CI-url]: https://github.com/bionanoimaging/NDTools.jl/actions/workflows/ci.yml
 
-[codecov-img]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl/branch/main/graph/badge.svg?token=32hzAnelbC
-[codecov-url]: https://codecov.io/gh/RainerHeintzmann/NDTools.jl
+[codecov-img]: https://codecov.io/gh/bionanoimaging/NDTools.jl/branch/main/graph/badge.svg?token=32hzAnelbC
+[codecov-url]: https://codecov.io/gh/bionanoimaging/NDTools.jl
