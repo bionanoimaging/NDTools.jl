@@ -35,6 +35,25 @@
         @test flatten_trailing_dims(ones((1, 1, 2, 2)), Val(4)) == [1.0;;; 1.0;;;; 1.0;;; 1.0]
     end
 
+    @testset "Test expand_dims second" begin
+        x = zeros(Int, 2,2,2,2,2,2)
+        @test size(expand_dims(x,1,2,3)) == (1,1,1,2,2,2,2,2,2)
+        @test size(expand_dims(x,3)) == (2,2,1,2,2,2,2)
+        @test size(expand_dims(x,6)) == (2,2,2,2,2,1, 2)
+        @test size(expand_dims(x,7)) == (2,2,2,2,2,2,1)
+        @test size(expand_dims(x,1)) == (1, 2,2,2,2,2,2)
+        x = zeros(Int, 2)
+        @test size(expand_dims(x,1)) == (1,2)
+        @test size(expand_dims(x,2)) == (2,1)
+
+        @test expand_dims(zeros((2,2)), 1) |> size == (1, 2, 2)
+
+        @test expand_dims(zeros((2,2)), 2) |> size == (2, 1, 2)
+        
+        @test expand_dims(zeros((2,2)), 3) |> size == (2, 2, 1)
+        
+        @test expand_dims(zeros((2,2)), 1,3,4) |> size == (1, 2, 1, 1, 2)
+    end
     
     @testset "Test expand_dims" begin
         function f(s, N)

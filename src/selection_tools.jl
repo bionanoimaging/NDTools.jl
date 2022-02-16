@@ -72,6 +72,38 @@ function expand_dims(x, ::Val{N}) where N
     return reshape(x, (size(x)..., ntuple(x -> 1, Val(N - ndims(x)))...))
 end
 
+"""
+    expand_dims(x::AbstractArray{T, N}, dims::Vararg{Int, M})  where {T, N, M}
+
+Insert singleton dimensions at the position of `dims` into `x`.
+Based on a `reshape` operation.
+
+ ## Examples
+```julia-repl
+julia> expand_dims(zeros((2,2)), 1) |> size
+(1, 2, 2)
+
+julia> expand_dims(zeros((2,2)), 2) |> size
+(2, 1, 2)
+
+julia> expand_dims(zeros((2,2)), 3) |> size
+(2, 2, 1)
+
+julia> expand_dims(zeros((2,2)), 1,3,4) |> size
+(1, 2, 1, 1, 2)
+```
+"""
+function expand_dims(x::AbstractArray{T, N}, dims::Vararg{Int, M})  where {T, N, M}
+    out_size = [size(x)...]
+
+    for d in dims
+        insert!(out_size, d, 1) 
+    end
+   
+    out_t = ntuple(i -> out_size[i], M+N) 
+    return reshape(x, out_t)::AbstractArray{T, M+N}
+end
+
 
 """
     flatten_trailing_dims(arr, max_dim=Val(max_dim))
