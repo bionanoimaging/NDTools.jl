@@ -104,6 +104,11 @@ function expand_dims(x::AbstractArray{T, N}, dims::Vararg{Int, M})  where {T, N,
     return reshape(x, out_t)::AbstractArray{T, M+N}
 end
 
+function expand_dims2(arr::AbstractArray{T, N}, dims::Vararg{Int, M})  where {T, N, M}
+    out_size = ntuple(i-> i ∈ dims ? CartesianIndex() : Colon() , N + M)
+    return view(arr, out_size...)
+end
+
 
 """
     flatten_trailing_dims(arr, max_dim=Val(max_dim))
@@ -189,8 +194,8 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
     src_start_clip = src_start_clip .+ extra_dst_start
     src_end_clip = max.(0, src_end_clip .- extra_dst_end)
 
-    range_src = Tuple((src_start_clip[d]:src_end_clip[d]) for d in 1:length(src_start))
-    range_dst = Tuple((dst_start_clip[d]:dst_end_clip[d]) for d in 1:length(dst_start))
+    range_src = ntuple(d -> src_start_clip[d]:src_end_clip[d], length(src_start))
+    range_dst = ntuple(d -> dst_start_clip[d]:dst_end_clip[d], length(dst_start))
     return range_src, range_dst
 end
 
