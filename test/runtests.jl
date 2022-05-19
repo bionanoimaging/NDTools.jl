@@ -12,5 +12,6 @@ include("iteration_tools.jl")
 include("selection_tools.jl")
 include("generation_tools.jl")
 include("reverse.jl")
+include("base_extensions.jl")
 
 return

@@ -10,6 +10,7 @@ makedocs(modules = [NDTools],
             "Select Regions" => "select_region.md",
             "Dimensionality Functions" => "dims.md",
             "Reverse views" => "reverse_view.md",
+            "Base Extensions for working with ND Data" => "base_extensions.md",
          ]
         )
 
