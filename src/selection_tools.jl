@@ -251,7 +251,7 @@ end
 
 
 """
-    select_region!(src, dst=nothing, new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat), operator!=assign_to!))
+    select_region!(src, dst=nothing; new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat), operator!=assign_to!))
 
 selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
 the position `center` in the source image. Note that the number of dimensions in `new_size`,  `center` and `dst_center` can be smaller , 
