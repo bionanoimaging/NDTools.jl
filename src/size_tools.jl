@@ -150,6 +150,36 @@ function single_dim_size(::Val{dim}, dim_size::Int, tdim=Val(dim)) where dim
     Base.setindex(ntuple(i -> 1, tdim), dim_size, dim)
 end
 
+"""
+    reorient(vec, d::Val{dim}, total_dims=d)
+
+Reorients a 1D vector `vec` along dimension `dim`.
+The total output dimension is `total_dims`.
+
+Type stable version of `reorient`!
+
+```jldoctest
+julia> reorient([1,2,3,4], Val(2))
+1×4 Matrix{Int64}:
+ 1  2  3  4
+
+julia> reorient([1,2,3,4], 2, Val(3))
+1×4×1 Array{Int64, 3}:
+[:, :, 1] =
+ 1  2  3  4
+
+julia> x = reshape(1:9, 3, 3);
+
+julia> reorient([1,2,3], 2, ndims(x))
+1×3 Matrix{Int64}:
+ 1  2  3
+```
+"""
+function reorient(vec, d::Val{dim}, total_dims=d) where dim
+    reshape(vec, single_dim_size(Val(dim), length(vec), total_dims))
+end
+
+
 
 """
     reorient(vec, dim, total_dims=dim)
@@ -160,33 +190,11 @@ Reorients a 1D vector `vec` along dimension `dim`.
     Is not type stable!
 
 ```julia
-julia> reorient([1,2,3,4], 3)
-1×1×4 Array{Int64, 3}:
-[:, :, 1] =
- 1
+julia> reorient([1,2,3,4], 2, Val(3))reorient^C
 
-[:, :, 2] =
- 2
-
-[:, :, 3] =
- 3
-
-[:, :, 4] =
- 4
-
-julia> reorient([1,2,3,4], 3, 4)
-1×1×4×1 Array{Int64, 4}:
-[:, :, 1, 1] =
- 1
-
-[:, :, 2, 1] =
- 2
-
-[:, :, 3, 1] =
- 3
-
-[:, :, 4, 1] =
- 4
+julia> reorient([1,2,3,4], 2)
+1×4 Matrix{Int64}:
+ 1  2  3  4
 ```
 """
 function reorient(vec, dim::Int, total_dims=dim)
@@ -194,30 +202,6 @@ function reorient(vec, dim::Int, total_dims=dim)
 end
 
 
-"""
-    reorient(vec, d::Val{dim}, total_dims=d)
-
-Type stable version of `reorient`!
-
-```jldoctest
-reorient([1,2,3,4], Val(3))
-1×1×4 Array{Int64, 3}:
-[:, :, 1] =
- 1
-
-[:, :, 2] =
- 2
-
-[:, :, 3] =
- 3
-
-[:, :, 4] =
- 4
-```
-"""
-function reorient(vec, d::Val{dim}, total_dims=d) where dim
-    reshape(vec, single_dim_size(Val(dim), length(vec), total_dims))
-end
 
 
 
