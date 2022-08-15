@@ -124,7 +124,6 @@ Reorients a 1D vector `vec` along dimension `dim`.
 The total output dimension is `total_dims`.
 
 Type stable version of `reorient`!
-
 ```jldoctest
 julia> reorient([1,2,3,4], Val(2))
 1×4 Matrix{Int64}:
