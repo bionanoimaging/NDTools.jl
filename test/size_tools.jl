@@ -28,12 +28,14 @@ end
     @test single_dim_size(2, 5) == (1, 5)
     @test single_dim_size(Val(2), 5) == (1, 5)
     @test single_dim_size(3,5, 4) == (1, 1, 5, 1)
+    @test single_dim_size(3,5, Val(4)) == (1, 1, 5, 1)
 
 end
 
 @testset "Test reorient" begin
     @test size(reorient([1,2,3,4], 3)) == (1,1,4)
     @test size(reorient([1,2,3,4], Val(3))) == (1,1,4)
+    @test size(reorient([1,2,3,4], 3, Val(4))) == (1,1,4,1)
     @test reorient([1,2,3,4], 2)[:] == [1,2,3,4]
 end
 

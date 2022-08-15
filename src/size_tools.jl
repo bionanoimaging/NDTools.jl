@@ -119,13 +119,27 @@ julia> single_dim_size(4, 5)
 julia> single_dim_size(2, 5)
 (1, 5)
 
-julia> single_dim_size(3,5, 4)
+julia> single_dim_size(3,5,4)
 (1, 1, 5, 1)
 ```
 """
 function single_dim_size(dim::Int, dim_size::Int, tdim=dim)
-    Base.setindex(ntuple(i -> 1, Val(tdim)), dim_size, dim)::NTuple{tdim, Int}
+    Base.setindex(ntuple(i -> 1, Val(tdim)), dim_size, dim)
 end
+
+"""
+    single_dim_size(dim::Int, dim_size::Int, tdim::Val{N})
+
+Type stable variant, since the resulting dimension depends on `tdim` which is a `Val`.
+```julia
+julia> single_dim_size(2, 5, Val(5))
+(1, 5, 1, 1, 1)
+```
+"""
+function single_dim_size(dim::Int, dim_size::Int, tdim::Val{N}) where N 
+    Base.setindex(ntuple(i -> 1, tdim), dim_size, dim)
+end
+
 
 """
     single_dim_size(::Val{dim}, dim_size::Int, tdim=::Val{dim})
@@ -138,7 +152,7 @@ end
 
 
 """
-    reorient(vec, dim)
+    reorient(vec, dim, total_dims=dim)
 
 Reorients a 1D vector `vec` along dimension `dim`.
 
@@ -159,14 +173,29 @@ julia> reorient([1,2,3,4], 3)
 
 [:, :, 4] =
  4
+
+julia> reorient([1,2,3,4], 3, 4)
+1×1×4×1 Array{Int64, 4}:
+[:, :, 1, 1] =
+ 1
+
+[:, :, 2, 1] =
+ 2
+
+[:, :, 3, 1] =
+ 3
+
+[:, :, 4, 1] =
+ 4
 ```
 """
-function reorient(vec, dim::Int)
-    reshape(vec, single_dim_size(dim, length(vec)))
+function reorient(vec, dim::Int, total_dims=dim)
+    reshape(vec, single_dim_size(dim, length(vec), total_dims))
 end
 
+
 """
-    reorient(vec, ::Val{dim})
+    reorient(vec, d::Val{dim}, total_dims=d)
 
 Type stable version of `reorient`!
 
@@ -186,8 +215,8 @@ reorient([1,2,3,4], Val(3))
  4
 ```
 """
-function reorient(vec, ::Val{dim}) where dim
-    reshape(vec, single_dim_size(Val(dim), length(vec)))
+function reorient(vec, d::Val{dim}, total_dims=d) where dim
+    reshape(vec, single_dim_size(Val(dim), length(vec), total_dims))
 end
 
 
