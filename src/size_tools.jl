@@ -91,46 +91,13 @@ julia> g(3)
 """
 curry(f, x) = (xs...) -> f(x, xs...)   # just a shorthand to remove x
 
-# Functions for IndexFunArrays.utils
-
 """
-    single_dim_size(dim::Int, dim_size::Int, tdim=dim)
+    single_dim_size(dim::Int, dim_size::Int, tdim::Val{N})
 
 Returns a tuple (length `tdim`, which by default is `dim`) of singleton sizes 
 except at the final position `dim`, which contains `dim_size`.
 
-!!! warning "Not type-stable!"
-    Is not type stable!
-
-
-Arguments:
-+ dim: non-zero position
-+ dim_size: the value this non-zero position is given in the returned NTuple
-+ tdim: total length of the returned NTuple
-
-Example
-```jldoctest
-julia> single_dim_size(4, 3)
-(1, 1, 1, 3)
-
-julia> single_dim_size(4, 5)
-(1, 1, 1, 5)
-
-julia> single_dim_size(2, 5)
-(1, 5)
-
-julia> single_dim_size(3,5,4)
-(1, 1, 5, 1)
-```
-"""
-function single_dim_size(dim::Int, dim_size::Int, tdim=dim)
-    Base.setindex(ntuple(i -> 1, Val(tdim)), dim_size, dim)
-end
-
-"""
-    single_dim_size(dim::Int, dim_size::Int, tdim::Val{N})
-
-Type stable variant, since the resulting dimension depends on `tdim` which is a `Val`.
+Type stable, since the resulting dimension depends on `tdim` which is a `Val`.
 ```julia
 julia> single_dim_size(2, 5, Val(5))
 (1, 5, 1, 1, 1)

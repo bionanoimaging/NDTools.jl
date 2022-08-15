@@ -23,11 +23,7 @@ end
 end
 
 @testset "Test single_dim_size" begin
-    @test single_dim_size(4, 3) == (1, 1, 1, 3)        
-    @test single_dim_size(4, 5) == (1, 1, 1, 5)
-    @test single_dim_size(2, 5) == (1, 5)
     @test single_dim_size(Val(2), 5) == (1, 5)
-    @test single_dim_size(3,5, 4) == (1, 1, 5, 1)
     @test single_dim_size(3,5, Val(4)) == (1, 1, 5, 1)
 
 end
