@@ -170,7 +170,7 @@ julia> reorient([1,2,3,4], 2, Val(3))
 
 julia> x = reshape(1:9, 3, 3);
 
-julia> reorient([1,2,3], 2, ndims(x))
+julia> reorient([1,2,3], 2, Val(ndims(x)))
 1×3 Matrix{Int64}:
  1  2  3
 ```
