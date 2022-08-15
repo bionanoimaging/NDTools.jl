@@ -33,18 +33,10 @@ end
 end
 
 @testset "Test reorient" begin
-    @test size(reorient([1,2,3,4], 3)) == (1,1,4)
     @test size(reorient([1,2,3,4], Val(3))) == (1,1,4)
     @test size(reorient([1,2,3,4], 3, Val(4))) == (1,1,4,1)
-    @test reorient([1,2,3,4], 2)[:] == [1,2,3,4]
 end
 
-@testset "Test collect_dim" begin
-    @test (1,1,1,5) == size(collect_dim((3,4,5,6,7),4))
-    @test collect_dim((3,4,5,6,7),4)[1,1,1,3] == 5
-    @test collect_dim(1:5,4)[:] == [1,2,3,4,5]
-    @test collect_dim(1:5, Val(4))[:] == [1,2,3,4,5]
-end
 
 @testset "Test expand_size" begin
     @test (1,2,3,7,8) == Tuple(expand_size((1,2,3), (4,5,6,7,8)))

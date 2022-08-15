@@ -179,63 +179,8 @@ function reorient(vec, d::Val{dim}, total_dims=d) where dim
     reshape(vec, single_dim_size(Val(dim), length(vec), total_dims))
 end
 
-
-
-"""
-    reorient(vec, dim, total_dims=dim)
-
-Reorients a 1D vector `vec` along dimension `dim`.
-
-!!! warning "Not type-stable!"
-    Is not type stable!
-
-```julia
-julia> reorient([1,2,3,4], 2, Val(3))reorient^C
-
-julia> reorient([1,2,3,4], 2)
-1×4 Matrix{Int64}:
- 1  2  3  4
-```
-"""
-function reorient(vec, dim::Int, total_dims=dim)
-    reshape(vec, single_dim_size(dim, length(vec), total_dims))
-end
-
-
-
-
-
-"""
-    collect_dim(col, dim::Int)
-
-collects a collection `col` and reorients it into direction `dim`.
-
-Example:
- ```jldoctest
-julia> collect_dim(1:5,2)
-1×5 Matrix{Int64}:
- 1  2  3  4  5
-```
-"""
-function collect_dim(col, dim::Int)
-    reorient(collect(col), dim)
-end
-
-
-"""
-    collect_dim(col, dim::Val)
-
-Type stable version!
-
-```jldoctest
-julia> collect_dim(1:5, Val(2))
-1×5 Matrix{Int64}:
- 1  2  3  4  5
-```
-
-"""
-function collect_dim(col, dim::Val)
-    reorient(collect(col), dim)
+function reorient(vec, d::Int, total_dims::Val)
+    reshape(vec, single_dim_size(d, length(vec), total_dims))
 end
 
 
