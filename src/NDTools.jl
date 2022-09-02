@@ -4,6 +4,7 @@ using Base.Iterators, PaddedViews, LinearAlgebra
 using Statistics, OffsetArrays
 
 
+include("type_tools.jl")
 include("offset_types.jl")
 include("MutablePaddedViews.jl")
 include("datatype_tools.jl")
