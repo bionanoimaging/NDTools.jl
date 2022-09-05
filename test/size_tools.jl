@@ -57,4 +57,11 @@ end
     @test g(3) == 13
 end
 
+@testset "Test axes methods" begin
+    @test axes_centered((10,11)) == (-5:4, -5:5)
+    @test axes_centered(zeros(10,11)) == (-5:4, -5:5)
+    @test axes_corner_only((10,11)) == (-5:0, -5:0)
+    @test axes_corner_only(zeros(10,11)) == (-5:0, -5:0)
+end
+
 

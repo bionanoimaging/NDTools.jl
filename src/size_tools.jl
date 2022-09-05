@@ -2,6 +2,7 @@
 
 export collect_dim, select_sizes, select_sizes_squeeze, center_position, center_value
 export expand_add, expand_size, optional_pos_z, reorient, single_dim_size
+export axes_centered, axes_corner_only
 
 """
     contains all functions that operate on Tuples, sizes and alike
@@ -245,3 +246,46 @@ function ft_center_diff(s::NTuple{N, T}, dims=ntuple(identity, Val(N))) where {N
     ntuple(i -> i ∈ dims ?  s[i] ÷ 2 : 0 , N)
 end
 
+"""
+    axes_centered(sz::NTuple)
+
+returns a Tuple of axes ranges centered to the Fourier middle position.
+#Arguments
++ `sz`: the size of the corresponding array. 
+"""
+function axes_centered(sz::NTuple)
+    Tuple(-(s÷2):s-(s÷2)-1 for s in sz)
+end
+
+"""
+    axes_centered(arr::AbstractArray)
+
+returns a Tuple of axes ranges centered to the Fourier middle position
+#Arguments
++ `arr`: the array for which to calculate the axes. 
+"""
+function axes_centered(arr::AbstractArray)
+    axes_centered(size(arr))
+end
+
+"""
+    axes_corner_only(sz::NTuple)
+
+returns a Tuple of axes ranges centered to the Fourier middle position but only for the first corner of the array.
+#Arguments
++ `sz`: the size of the corresponding array. 
+"""
+function axes_corner_only(sz::NTuple)
+    Tuple(-(s÷2):0 for s in sz)
+end
+
+"""
+    axes_corner_only(arr::AbstractArray)
+
+returns a Tuple of axes ranges centered to the Fourier middle position but only for the first corner of the array.
+#Arguments
++ `arr`: the array for which to calculate the axes. 
+"""
+function axes_corner_only(arr::AbstractArray)
+    axes_corner_only(size(arr))
+end
