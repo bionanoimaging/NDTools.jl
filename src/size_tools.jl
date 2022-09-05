@@ -253,8 +253,8 @@ returns a Tuple of axes ranges centered to the Fourier middle position.
 #Arguments
 + `sz`: the size of the corresponding array. 
 """
-function axes_centered(sz::NTuple)
-    Tuple(-(s÷2):s-(s÷2)-1 for s in sz)
+function axes_centered(sz::NTuple{N,T}) where {N,T}
+    ntuple(d -> (-(sz[d]÷2):sz[d]-(sz[d]÷2)-1), N)
 end
 
 """
@@ -275,8 +275,8 @@ returns a Tuple of axes ranges centered to the Fourier middle position but only 
 #Arguments
 + `sz`: the size of the corresponding array. 
 """
-function axes_corner_only(sz::NTuple)
-    Tuple(-(s÷2):0 for s in sz)
+function axes_corner_only(sz::NTuple{N, T}) where {N,T}
+    ntuple(d -> -(sz[d]÷2):0, N)
 end
 
 """
