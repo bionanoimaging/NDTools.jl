@@ -346,8 +346,7 @@ Arguments:
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 + `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
-+ `M=nothing`. Specifies a magnification, if `!isnothing(M)` then `new_size = round(Int, M .* size(src))` will be set.
-               Also `dst_center = new_size .÷ 2 .+ 1` will be set.
++ `M=nothing`. Specifies a magnification, if `!isnothing(M)` then `new_size = round.(Int, M .* size(src))` will be set.
 
 The returned result is a newly allocated array of the same type as the src. This is currently faster that select_region_view().
 
