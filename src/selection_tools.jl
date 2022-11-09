@@ -141,6 +141,7 @@ The returned results is a mutable view, which allows this method to also be used
 
 See also
 + [`select_region`](@ref)
++ [`select_region!`](@ref)
 
 Examples
 ```jldoctest
@@ -276,6 +277,7 @@ The returned results is the destination (or newly created) array.
 Note that this version is rather fast, since it consists of only a sinlge sub-array assigment on views, avoiding copy operations.
 
 See also
++ [`select_region_view`](@ref)
 + [`select_region`](@ref)
 
 Examples:
@@ -328,22 +330,30 @@ end
 
 
 """
-    select_region(src; new_size=size(mat), center=ft_center_diff(size(mat)).+1, pad_value=zero(eltype(mat)))
+    select_region(src; new_size=size(mat), center=ft_center_diff(size(mat)).+1, 
+                       pad_value=zero(eltype(mat)), dst_center = new_size .÷ 2 .+1,
+                       M = nothing)
 
-selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
-the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
-into the missing dimensions. `new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
+selects (extracts) a region of interest (ROI), defined by `new_size` and centered 
+at `center` in the source image. 
+Note that the number of dimensions can be smaller in `new_size` and `center`, 
+in which case the default values will be insterted into the missing dimensions. 
+`new_size` does not need to fit into the source array and missing values will be replaced with `pad_value`.
 
 Arguments:
 + `src`. The array to extract the region from.
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
++ `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 + `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
++ `M=nothing`. Specifies a magnification, if `!isnothing(M)` then `new_size = round(Int, M .* size(src))` will be set.
+               Also `dst_center = new_size .÷ 2 .+ 1` will be set.
 
 The returned result is a newly allocated array of the same type as the src. This is currently faster that select_region_view().
 
 See also
 + [`select_region_view`](@ref)
++ [`select_region!`](@ref)
 
 Examples
 ```jldoctest
@@ -377,7 +387,15 @@ julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region(src::AbstractArray{T,N}; new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
+function select_region(src::AbstractArray{T,N}; M=nothing, new_size=size(src), center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
+
+    @assert isnothing(M) || new_size == size(src) "Either choose M or new_size, don't set both at the same time"
+
+    if !isnothing(M)
+        new_size = round.(Int, M .* size(src))
+        dst_center = new_size .÷ 2 .+ 1
+    end
+
     new_size = Tuple(expand_size(new_size, size(src)))
     # replace missing coordinates with the new center position
     dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1))
@@ -400,3 +418,4 @@ function select_region(src::AbstractArray{T,N}; new_size=size(src), center=size(
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
     return dst
 end
+
