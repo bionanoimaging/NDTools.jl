@@ -85,6 +85,17 @@
         @test all(select_region!(2 .*a, a, operator! = f) .== 2) # let the operator add one to destination
     end
 
+    @testset "Test Magnificiation" begin
+        @test select_region([1, 2, 3], M = 2) == [0, 0, 1, 2, 3, 0]
+
+        @test select_region([1, 2, 3], M = 0.5) == [1, 2]
+        @test select_region([1, 2, 3], M = 0.49) == [2]
+        @test select_region([1, 2, 3], M = 2.4) == [0, 0, 1, 2, 3, 0, 0]
+        @test select_region([1 2; 3 4], M = 2) == [0 0 0 0; 0 1 2 0; 0 3 4 0; 0 0 0 0]
+        @test_throws AssertionError select_region([1], M = 1, new_size=(2,1))
+    end
+
+
     @testset "Test assignment functions" begin
         dst = ones(10,10)
         src = ones(10,10)

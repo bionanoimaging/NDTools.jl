@@ -23,7 +23,7 @@ function real_arr_type(::Type{TA}; dims=N) where {T,N, TA<:AbstractArray{T,N}}
     similar_arr_type(TA, dtype=real(eltype(TA)), dims=dims)
 end
 
-function real_arr_type(::Type{TA}; dims=1) where {N, TA<:AbstractArray}
+function real_arr_type(::Type{TA}; dims=1) where {TA<:AbstractArray}
     similar_arr_type(TA, dtype=real(eltype(TA)), dims=dims)
 end
 
@@ -51,7 +51,7 @@ function complex_arr_type(::Type{TA}; dims=N) where {T,N, TA<:AbstractArray{T,N}
     similar_arr_type(TA, dtype=complex(eltype(TA)), dims=dims)
 end
 
-function complex_arr_type(::Type{TA}; dims=1) where {N, TA<:AbstractArray}
+function complex_arr_type(::Type{TA}; dims=1) where {TA<:AbstractArray}
     similar_arr_type(TA, dtype=complex(eltype(TA)), dims=dims)
 end
  

@@ -72,8 +72,8 @@ julia> optional_pos_z((5,5,5),(3,2,1))
 4
 ```
 """
-optional_pos_z(x::NTuple{1,T}, offset::NTuple{1,T}) where {T,N} = 1
-optional_pos_z(x::NTuple{2,T}, offset::NTuple{2,T}) where {T,N} = 1
+optional_pos_z(x::NTuple{1,T}, offset::NTuple{1,T}) where {T} = 1
+optional_pos_z(x::NTuple{2,T}, offset::NTuple{2,T}) where {T} = 1
 optional_pos_z(x::NTuple{N,T}, offset::NTuple{N,T}) where {T,N} = x[3]-offset[3]
 
 """
