@@ -44,10 +44,7 @@ Typically one wants to
 
 Example:
 ```jldoctest
-julia> sz = expand_size((1,2,3),(4,5,6,7,8,9))
-Base.Generator{UnitRange{Int64}, var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}}(var"#7#8"{Tuple{Int64, Int64, Int64}, NTuple{6, Int64}, Int64}((1, 2, 3), (4, 5, 6, 7, 8, 9), 3), 1:6)
-
-julia> Tuple(sz)
+julia> expand_size((1,2,3),(4,5,6,7,8,9))
 (1, 2, 3, 7, 8, 9)
 ```
 """
