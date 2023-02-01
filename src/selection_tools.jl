@@ -1,6 +1,7 @@
 ## selection_tools.jl
 export expand_dims, select_region_view, select_region, select_region!, flatten_trailing_dims
 export slice
+export ⊠
 
 """
     slice(arr, dim, index)
@@ -388,16 +389,16 @@ julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
 """
 function select_region(src::AbstractArray{T,N}; M=nothing, 
                        new_size=(isnothing(M) ? size(src) : round.(Int, M .* size(src))),
-                       center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
+                       center=size(src).÷2 .+1, pad_value=zero(eltype(src)),
+                       dst_center = new_size .÷ 2 .+1) where {T,N}
 
-    @assert isnothing(M) || new_size == round.(Int, M .* size(src)) "Either choose M or new_size, don't set both at the same time"
-
+    @assert isnothing(M) || 
+        new_size == round.(Int, M .* size(src)) "Either choose M or new_size, don't set both at the same time"
 
     new_size = Tuple(expand_size(new_size, size(src)))
     # replace missing coordinates with the new center position
     dst_center = Tuple(expand_size(dst_center, new_size .÷ 2 .+1))
 
-    pad_value = eltype(src)(pad_value)
  
     # if the new_size is fully enclosed, we can simply use similar
     # since there is no pad
@@ -415,4 +416,33 @@ function select_region(src::AbstractArray{T,N}; M=nothing,
     select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
     return dst
 end
+
+
+"""
+    ⊠(arr, s::Int)
+
+`\boxtimes+<TAB>`.
+"""
+function ⊠(arr, s::Int)
+    select_region(arr, new_size=round.(Int, s .* size(arr)))
+end
+
+
+"""
+    ⊠(arr, s::Int)
+
+`\boxtimes+<TAB>`.
+"""
+function ⊠(arr, s::NTuple{N}) where N
+    s_new = ntuple(Val(N)) do i
+        if i ≤ ndims(arr)
+            size(arr, i) * s[i]
+        else
+            s[i]
+        end
+    end
+
+    select_region(arr, new_size=round.(Int, s_new))
+end
+
 
