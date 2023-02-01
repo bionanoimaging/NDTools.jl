@@ -1,7 +1,6 @@
 ## selection_tools.jl
 export expand_dims, select_region_view, select_region, select_region!, flatten_trailing_dims
 export slice
-export ⊠
 
 """
     slice(arr, dim, index)
