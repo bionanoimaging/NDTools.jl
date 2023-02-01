@@ -417,32 +417,3 @@ function select_region(src::AbstractArray{T,N}; M=nothing,
     return dst
 end
 
-
-"""
-    ⊠(arr, s::Int)
-
-`\boxtimes+<TAB>`.
-"""
-function ⊠(arr, s::Int)
-    select_region(arr, new_size=round.(Int, s .* size(arr)))
-end
-
-
-"""
-    ⊠(arr, s::Int)
-
-`\boxtimes+<TAB>`.
-"""
-function ⊠(arr, s::NTuple{N}) where N
-    s_new = ntuple(Val(N)) do i
-        if i ≤ ndims(arr)
-            size(arr, i) * s[i]
-        else
-            s[i]
-        end
-    end
-
-    select_region(arr, new_size=round.(Int, s_new))
-end
-
-
