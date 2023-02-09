@@ -7,8 +7,9 @@ returns the same array type but using `(real(eltype()))` as the element type
 # Arguments
 + `TA`:     The array type to convert to an eltype of `real(eltype(TA))`
 + `dims`:   The number of dimensions of the returned array type
-#Example
-```jdoctest
+
+# Example
+```jldoctest
 julia> real_arr_type(Array{ComplexF64})
 Vector{Float64} (alias for Array{Float64, 1})
 
@@ -31,12 +32,13 @@ end
     complex_arr_type(::Type{TA}) where {TA<:AbstractArray}
 
 returns the same array type but using `(complex(eltype()))` as the element type
+
 # Arguments
 + `TA`:     The array type to convert to an eltype of `complex(eltype(TA))`
 + `dims`:   The number of dimensions of the returned array type
 
-#Example
-```jdoctest
+# Example
+```jldoctest
 julia> complex_arr_type(Array{Float32})
 Vector{ComplexF32} (alias for Array{Complex{Float32}, 1})
 
@@ -66,8 +68,9 @@ returns a similar array type but using as TA, but eltype and ndims can be change
 + `dims`:   The number of dimensions of the returned array type
 + `dtype`:  The `eltype()` of the returned array type.
 
-#Example
-```jdoctest
+# Example
+
+```jldoctest
 julia> similar_arr_type(Array{ComplexF64})
 Vector{ComplexF64} (alias for Array{Complex{Float64}, 1})
 
