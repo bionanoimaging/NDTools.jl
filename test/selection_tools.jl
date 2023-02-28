@@ -83,6 +83,8 @@
         @test all(select_region(a, new_size=nz, center=(-100,100), pad_value=10) .== 10) # only pad values
         function f(a,b) a.+=1 end # user-defined function
         @test all(select_region!(2 .*a, a, operator! = f) .== 2) # let the operator add one to destination
+        @test select_region(collect(1:10), new_size=(5,), center=(1,), dst_center=(1,)) == collect(1:5)
+        @test select_region_view(collect(1:10), new_size=(5,), center=(1,), dst_center=(1,)) == collect(1:5)
     end
 
     @testset "Test Magnificiation" begin
