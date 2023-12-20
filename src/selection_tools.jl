@@ -255,10 +255,10 @@ end
 
 
 """
-    select_region!(src, dst=nothing; 
-                    new_size=ntuple((d)->typemax(Int)÷2,Val(length(size(src)))),
+    select_region!(srcsrc::AbstractArray{T, N}, dst=nothing; 
+                    new_size=ntuple((d)->typemax(Int)÷2,Val(N)),
                     center=size(src).÷2 .+1, dst_center=nothing,
-                    pad_value=zero(eltype(mat), operator!=assign_to!))
+                    pad_value=zero(eltype(mat), operator!=assign_to!)) where {T,N}
 
 selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
 the position `center` in the source image. Note that the number of dimensions in `new_size`,  `center` and `dst_center` can be smaller , 
@@ -318,8 +318,8 @@ julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
  0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
 ```
 """
-function select_region!(src, dst; new_size=ntuple((d)->typemax(Int)÷2,Val(length(size(src)))), 
-                        center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1, operator! =assign_to!)
+function select_region!(src::AbstractArray{T, N}, dst; new_size=ntuple((d)->typemax(Int)÷2,Val(N)), 
+                        center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1, operator! =assign_to!) where {T,N}
     new_size = Tuple(expand_size(new_size, size(dst)))
     center = Tuple(expand_size(center, size(src).÷2 .+1))
     dst_center = Tuple(expand_size(dst_center, size(dst).÷ 2 .+1))
