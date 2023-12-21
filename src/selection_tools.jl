@@ -125,7 +125,7 @@ end
 
 
 """
-    select_region_view(src; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src)))
+    select_region_view(src; new_size=size(src), center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(new_size), pad_value=zero(eltype(src)))
 
 selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
 the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
@@ -135,6 +135,7 @@ Arguments:
 + `src`. The source array to select from.
 + `new_size`. The size of the array view after the operation finished. By default the original size is assumed
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
++ `dst_center`. Specifies the destination center of the new view to be mapped to the source center as given by `center`. 
 + `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
 
 The returned results is a mutable view, which allows this method to also be used for writing into a ROI
@@ -156,11 +157,10 @@ julia> select_region_view(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region_view(src::Array{T,N}; new_size=size(src), center=ft_center_diff(size(src)).+1, pad_value=zero(eltype(src))) where {T,N}
+function select_region_view(src::Array{T,N}; new_size=size(src), center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(new_size).+1, pad_value=zero(eltype(src))) where {T,N}
     new_size = Tuple(expand_size(new_size, size(src)))
     center = Tuple(expand_size(center, ft_center_diff(size(src)).+1))
-    oldcenter = ft_center_diff(new_size).+1
-    MutablePaddedView(PaddedView(pad_value, src,new_size, oldcenter .- center.+1)) :: MutablePaddedView{T, N, NTuple{N,Base.OneTo{Int64}}, OffsetArrays.OffsetArray{T, N, Array{T, N}}} 
+    MutablePaddedView(PaddedView(pad_value, src,new_size, dst_center .- center.+1)) :: MutablePaddedView{T, N, NTuple{N,Base.OneTo{Int64}}, OffsetArrays.OffsetArray{T, N, Array{T, N}}} 
 end
 
 """
@@ -171,8 +171,10 @@ integer center position of the destination aligning with the position in the sou
 """
 function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst_size .÷2 .+1)
     ROI_center = (new_size.÷2 .+1)
-    src_start = src_center .- ROI_center  .+1 # start of the first pixel to copy (without clipping)
-    src_end = src_start .+ new_size .- 1 # the last pixel to copy
+    # start of the first pixel to copy (without clipping):
+    src_start = src_center .- ROI_center  .+1
+    # the last pixel to copy:
+    src_end = src_start .+ new_size .- 1
     src_start_clip = max.(1, src_start)
     src_end_clip = min.(src_end, src_size)
     if any(src_start_clip .> src_size) || any(src_end_clip .< 1)
@@ -187,7 +189,8 @@ function get_src_dst_range(src_size, dst_size, new_size, src_center, dst_ctr=dst
     dst_end_clip = min.(dst_end, dst_size)
     dst_start_clip = max.(1, dst_start)
     if any(dst_start_clip .> dst_size) || any(dst_end_clip .< 1)
-        return (1:0), (1:0)  # returns an empty range for all coordinates
+        # returns an empty range for all coordinates
+        return (1:0), (1:0)
     end
 
     extra_dst_start = max.(0, dst_start_clip .- dst_start)
@@ -252,7 +255,10 @@ end
 
 
 """
-    select_region!(src, dst=nothing; new_size=size(src), center=size(src).÷2 .+1, dst_center=nothing, pad_value=zero(eltype(mat), operator!=assign_to!))
+    select_region!(src::AbstractArray{T, N}, dst=nothing; 
+                    center=size(src).÷2 .+1, dst_center=nothing,
+                    new_size=2 .*(1 .+ abs.(dst_center.-(size(src).÷ 2 .+ 1))) .+ size(src),
+                    pad_value=zero(eltype(mat), operator!=assign_to!)) where {T,N}
 
 selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
 the position `center` in the source image. Note that the number of dimensions in `new_size`,  `center` and `dst_center` can be smaller , 
@@ -266,7 +272,9 @@ If `nothing` is provided for `dst`, a new array of size `new_size` is created.
 Arguments:
 + `src`. The source array to select from.
 + `dst`. The destination array to write into, if provided. By default `dst=nothing` a new array is created. The `dst`array (or new array) is returned. 
-+ `new_size`. The size of the array view after the operation finished. By default the original size is assumed
++ `new_size`. The size of the array view after the operation finished. By default a maximally large destination size is chosen, which means that any overlap is copied.
+              If you specify `new_size`, be aware that the `center` and `dst_center` specifications below really have to refer to centers to be copied!
+              If `new_size` is not specified, a size to fully encompass the (potentially displaced) source array is automatically chosen.
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-center (right center) is assumed.
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 + `pad_value`. specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
@@ -311,9 +319,11 @@ julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
  0.0  0.0  0.0  0.0  0.0  0.0  2.0  2.0  2.0  2.0
 ```
 """
-function select_region!(src, dst; new_size=size(dst), 
-                        center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1, operator! =assign_to!)
-    new_size = Tuple(expand_size(new_size, size(dst)))    
+function select_region!(src::AbstractArray{T, N}, dst;
+                        center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1,
+                        new_size=2 .*(1 .+ abs.(dst_center.-(size(src).÷ 2 .+ 1))) .+ size(src),
+                        operator! =assign_to!) where {T,N}
+    new_size = Tuple(expand_size(new_size, size(dst)))
     center = Tuple(expand_size(center, size(src).÷2 .+1))
     dst_center = Tuple(expand_size(dst_center, size(dst).÷ 2 .+1))
 
@@ -412,7 +422,9 @@ function select_region(src::AbstractArray{T,N}; M=nothing,
             fill!(arr_n, pad_value)
         end
     end
-    select_region!(src,dst;new_size=new_size, center=center, dst_center=dst_center)
+    # new_size is intentionally not specified which forces the method to adapt for maximal overlay
+    # of source and destination.
+    select_region!(src, dst; center=center, dst_center=dst_center)
     return dst
 end
 
