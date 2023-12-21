@@ -255,9 +255,9 @@ end
 
 
 """
-    select_region!(srcsrc::AbstractArray{T, N}, dst=nothing; 
+    select_region!(src::AbstractArray{T, N}, dst=nothing; 
                     center=size(src).÷2 .+1, dst_center=nothing,
-                    new_size==2 .*abs.(dst_center.-(size(dst).÷ 2 .+1)) .+ size(dst),
+                    new_size=2 .*(1 .+ abs.(dst_center.-(size(src).÷ 2 .+ 1))) .+ size(src),
                     pad_value=zero(eltype(mat), operator!=assign_to!)) where {T,N}
 
 selects (extracts, pads, shifts) a region of interest (ROI), defined by `new_size` and centered with the destination center aligned at 
@@ -274,6 +274,7 @@ Arguments:
 + `dst`. The destination array to write into, if provided. By default `dst=nothing` a new array is created. The `dst`array (or new array) is returned. 
 + `new_size`. The size of the array view after the operation finished. By default a maximally large destination size is chosen, which means that any overlap is copied.
               If you specify `new_size`, be aware that the `center` and `dst_center` specifications below really have to refer to centers to be copied!
+              If `new_size` is not specified, a size to fully encompass the (potentially displaced) source array is automatically chosen.
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-center (right center) is assumed.
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 + `pad_value`. specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
@@ -319,7 +320,9 @@ julia> dst=select_region(a,new_size=(10,10), dst_center=(1,1)) # pad a with zero
 ```
 """
 function select_region!(src::AbstractArray{T, N}, dst;
-                        center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1,  new_size=2 .*abs.(dst_center.-(size(dst).÷ 2 .+1)) .+ size(dst), operator! =assign_to!) where {T,N}
+                        center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1,
+                        new_size=2 .*(1 .+ abs.(dst_center.-(size(src).÷ 2 .+ 1))) .+ size(src),
+                        operator! =assign_to!) where {T,N}
     new_size = Tuple(expand_size(new_size, size(dst)))
     center = Tuple(expand_size(center, size(src).÷2 .+1))
     dst_center = Tuple(expand_size(dst_center, size(dst).÷ 2 .+1))

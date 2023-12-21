@@ -85,6 +85,14 @@
         @test all(select_region!(2 .*a, a, operator! = f) .== 2) # let the operator add one to destination
         @test select_region(collect(1:10), new_size=(5,), center=(1,), dst_center=(1,)) == collect(1:5)
         @test select_region_view(collect(1:10), new_size=(5,), center=(1,), dst_center=(1,)) == collect(1:5)
+        a = ones(10,10)
+        select_region!(2 .*a, a, dst_center=(10,10));
+        @test all(a[5:end,5:end] .== 2) # check the overwritten part
+        @test all(a[1:4,1:4] .== 1) # check part of the non-overwritten part
+        a = ones(10,10)
+        b = 4*ones(70,70)
+        select_region!(b, a, dst_center=(-20,20));
+        @test all(a .== 4) # check the automatic selection of a large enough new_size
     end
 
     @testset "Test Magnificiation" begin
