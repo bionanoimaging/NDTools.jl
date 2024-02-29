@@ -157,7 +157,7 @@ julia> select_region_view(ones(3,3),new_size=(7,7),center=(1,3))
  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-function select_region_view(src::Array{T,N}; new_size=size(src), center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(new_size).+1, pad_value=zero(eltype(src))) where {T,N}
+function select_region_view(src::Array{T,N}; new_size=size(src), center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(Tuple(expand_size(new_size, size(src)))).+1, pad_value=zero(eltype(src))) where {T,N}
     new_size = Tuple(expand_size(new_size, size(src)))
     center = Tuple(expand_size(center, ft_center_diff(size(src)).+1))
     MutablePaddedView(PaddedView(pad_value, src,new_size, dst_center .- center.+1)) :: MutablePaddedView{T, N, NTuple{N,Base.OneTo{Int64}}, OffsetArrays.OffsetArray{T, N, Array{T, N}}} 
