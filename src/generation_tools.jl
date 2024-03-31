@@ -28,6 +28,20 @@ Converts an N-dimensional array of NTuple to an N+1 dimensional array by orienti
 Arguments:
 + `idx_arr`. The array of NTuple to convert
 
+Example:
+```jldoctest
+julia> idx_to_dim([(x,y) for x in 1:3, y in 1:3])
+3×3×2 Array{Int64, 3}:
+[:, :, 1] =
+ 1  1  1
+ 2  2  2
+ 3  3  3
+
+[:, :, 2] =
+ 1  2  3
+ 1  2  3
+ 1  2  3
+ ```
 """
 function idx_to_dim(idx_arr::AbstractArray{T, N}) where {T, N} 
     out_arr = Array{typeof(idx_arr[1][1])}(undef, size(idx_arr)..., length(idx_arr[begin]))

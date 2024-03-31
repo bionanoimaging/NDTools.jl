@@ -125,7 +125,7 @@ end
 
 
 """
-    select_region_view(src; new_size=size(src), center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(new_size), pad_value=zero(eltype(src)))
+    select_region_view(src, [new_size]; new_size=size(src), center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(new_size), pad_value=zero(eltype(src)))
 
 selects (extracts) a region of interest (ROI), defined by `new_size` and centered at `center` in the source image. Note that
 the number of dimensions can be smaller in `new_size` and `center`, in which case the default values will be insterted
@@ -133,7 +133,7 @@ into the missing dimensions. `new_size` does not need to fit into the source arr
 
 Arguments:
 + `src`. The source array to select from.
-+ `new_size`. The size of the array view after the operation finished. By default the original size is assumed
++ `new_size`. The size of the array view after the operation finished. By default the original size is assumed. As an alternative aliaws, the new_size can also be provided as a second argument.
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
 + `dst_center`. Specifies the destination center of the new view to be mapped to the source center as given by `center`. 
 + `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
@@ -161,6 +161,15 @@ function select_region_view(src::Array{T,N}; new_size=size(src), center=ft_cente
     new_size = Tuple(expand_size(new_size, size(src)))
     center = Tuple(expand_size(center, ft_center_diff(size(src)).+1))
     MutablePaddedView(PaddedView(pad_value, src,new_size, dst_center .- center.+1)) :: MutablePaddedView{T, N, NTuple{N,Base.OneTo{Int64}}, OffsetArrays.OffsetArray{T, N, Array{T, N}}} 
+end
+
+"""
+    select_region_view(src::Array{T,N}, new_size; center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(Tuple(expand_size(new_size, size(src)))).+1, pad_value=zero(eltype(src))) where {T,N}
+
+alias to select_region_view(src; new_size=new_size, center=center, dst_center=dst_center, pad_value=pad_value)
+"""
+function select_region_view(src::Array{T,N}, new_size; center=ft_center_diff(size(src)).+1, dst_center=ft_center_diff(Tuple(expand_size(new_size, size(src)))).+1, pad_value=zero(eltype(src))) where {T,N}
+    select_region_view(src::Array{T,N}; new_size=new_size, center=center, dst_center=dst_center, pad_value=pad_value)
 end
 
 """
@@ -255,7 +264,7 @@ end
 
 
 """
-    select_region!(src::AbstractArray{T, N}, dst=nothing; 
+    select_region!(src::AbstractArray{T, N}, dst=nothing, [new_size]; 
                     center=size(src).÷2 .+1, dst_center=nothing,
                     new_size=2 .*(1 .+ abs.(dst_center.-(size(src).÷ 2 .+ 1))) .+ size(src),
                     pad_value=zero(eltype(mat), operator!=assign_to!)) where {T,N}
@@ -275,6 +284,7 @@ Arguments:
 + `new_size`. The size of the array view after the operation finished. By default a maximally large destination size is chosen, which means that any overlap is copied.
               If you specify `new_size`, be aware that the `center` and `dst_center` specifications below really have to refer to centers to be copied!
               If `new_size` is not specified, a size to fully encompass the (potentially displaced) source array is automatically chosen.
+              As an alternative alias, the new_size can also be provided as a third argument.
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-center (right center) is assumed.
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 + `pad_value`. specifies the value which is inserted in case the ROI extends to outside the source area. This is only used, if no `dst` array is provided.
@@ -338,9 +348,18 @@ function select_region!(src::AbstractArray{T, N}, dst;
     return dst
 end
 
+"""
+    function select_region!(src::AbstractArray{T, N}, dst, new_size; center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1, operator! =assign_to!) where {T,N}
+
+alias to select_region!(src, dst; new_size=new_size, center=center, dst_center=dst_center, operator!=operator!)
+"""
+function select_region!(src::AbstractArray{T, N}, dst, new_size; center=size(src).÷2 .+1, dst_center=size(dst).÷ 2 .+1,
+    operator! =assign_to!) where {T,N}
+    return select_region!(src, dst; new_size=new_size, center=center, dst_center=dst_center, operator! = operator!)
+end
 
 """
-    select_region(src; new_size=size(mat), center=ft_center_diff(size(mat)).+1, 
+    select_region(src, [new_size]; new_size=size(mat), center=ft_center_diff(size(mat)).+1, 
                        pad_value=zero(eltype(mat)), dst_center = new_size .÷ 2 .+1,
                        M = nothing)
 
@@ -352,7 +371,7 @@ in which case the default values will be insterted into the missing dimensions.
 
 Arguments:
 + `src`. The array to extract the region from.
-+ `new_size`. The size of the array view after the operation finished. By default the original size is assumed
++ `new_size`. The size of the array view after the operation finished. By default the original size is assumed. As an alternative alias, the new_size can also be provided as a second argument.
 + `center`. Specifies the center of the new view in coordinates of the old view. By default an alignment of the Fourier-centers is assumed.
 + `dst_center`. defines the center coordinate in the destination array which should align with the above source center. If nothing is provided, the right center pixel of the `dst` array or new array is used.
 + `pad_value`. Specifies the value which is inserted in case the ROI extends to outside the source area.
@@ -428,3 +447,13 @@ function select_region(src::AbstractArray{T,N}; M=nothing,
     return dst
 end
 
+"""
+function select_region(src::AbstractArray{T,N}, new_size; M=nothing, 
+    center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
+
+alias to select_region(src; new_size=new_size, center=center, pad_value=pad_value, dst_center=dst_center)
+"""
+function select_region(src::AbstractArray{T,N}, new_size; M=nothing, 
+    center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
+    return select_region(src; M=M, new_size=new_size, center=center, pad_value=pad_value, dst_center=dst_center)
+end

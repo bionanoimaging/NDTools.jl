@@ -65,7 +65,8 @@
     end
 
     @testset "Test select_region" begin
-        @test select_region_view(ones(3,),new_size=(7,),center=(1,), pad_value=-1) == [-1.0;-1.0;-1.0;1.0;1.0;1.0;-1.0]
+        @test select_region_view(ones(3,); new_size=(7,),center=(1,), pad_value=-1) == [-1.0;-1.0;-1.0;1.0;1.0;1.0;-1.0]
+        @test select_region_view(ones(3,), new_size=(7,); center=(1,), pad_value=-1) == [-1.0;-1.0;-1.0;1.0;1.0;1.0;-1.0] # test the alias
         for d=1:5
             for n=1:10
                 sz = Tuple(rand(1:5) for q in 1:d)
@@ -74,17 +75,21 @@
                 nc = Tuple(rand(1:5) for q in 1:d)
                 pad = rand()
                 @test all(select_region(a,new_size=nsz, center=nc, pad_value=pad) .== select_region(a,new_size=nsz, center=nc, pad_value=pad))
+                @test all(select_region(a, nsz; center=nc, pad_value=pad) .== select_region(a,new_size=nsz, center=nc, pad_value=pad))
             end
         end
         a = ones(10,10)
         @test all(select_region(a) .== 1) # simplest version
         nz = (20,20)
         @test all(select_region(a, new_size=nz, pad_value=1) .== 1) # with padding
+        @test all(select_region(a, nz; pad_value=1) .== 1) # test the alias
         @test all(select_region(a, new_size=nz, center=(-100,100), pad_value=10) .== 10) # only pad values
+        @test all(select_region(a, nz; center=(-100,100), pad_value=10) .== 10) # test the alias
         function f(a,b) a.+=1 end # user-defined function
         @test all(select_region!(2 .*a, a, operator! = f) .== 2) # let the operator add one to destination
         @test select_region(collect(1:10), new_size=(5,), center=(1,), dst_center=(1,)) == collect(1:5)
         @test select_region_view(collect(1:10), new_size=(5,), center=(1,), dst_center=(1,)) == collect(1:5)
+        @test select_region_view(collect(1:10), (5,); center=(1,), dst_center=(1,)) == collect(1:5) # test the alias
         a = ones(10,10)
         select_region!(2 .*a, a, dst_center=(10,10));
         @test all(a[5:end,5:end] .== 2) # check the overwritten part
@@ -103,6 +108,7 @@
         @test select_region([1, 2, 3], M = 2.4) == [0, 0, 1, 2, 3, 0, 0]
         @test select_region([1 2; 3 4], M = 2) == [0 0 0 0; 0 1 2 0; 0 3 4 0; 0 0 0 0]
         @test_throws AssertionError select_region([1], M = 1, new_size=(2,1))
+        @test_throws AssertionError select_region([1], (2,1), M = 1) # test the alias
     end
 
 
