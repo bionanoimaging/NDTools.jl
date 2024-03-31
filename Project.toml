@@ -1,7 +1,7 @@
 name = "NDTools"
 uuid = "98581153-e998-4eef-8d0d-5ec2c052313d"
 authors = ["Rainer Heintzmann <heintzmann@gmail.com>", "Felix Wechsler <fxw+git@mailbox.org>"]
-version = "0.5.3"
+version = "0.6.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

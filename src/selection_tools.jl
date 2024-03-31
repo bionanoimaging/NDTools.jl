@@ -448,10 +448,11 @@ function select_region(src::AbstractArray{T,N}; M=nothing,
 end
 
 """
-function select_region(src::AbstractArray{T,N}, new_size; M=nothing, 
-    center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
+    select_region(src::AbstractArray{T,N}, new_size; M=nothing, 
+                  center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}
 
-alias to select_region(src; new_size=new_size, center=center, pad_value=pad_value, dst_center=dst_center)
+
+Alias to `select_region(src; new_size=new_size, center=center, pad_value=pad_value, dst_center=dst_center)`
 """
 function select_region(src::AbstractArray{T,N}, new_size; M=nothing, 
     center=size(src).÷2 .+1, pad_value=zero(eltype(src)), dst_center = new_size .÷ 2 .+1) where {T,N}

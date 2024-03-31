@@ -1,5 +1,5 @@
 ## generation_tools.jl
-export get_scan_pattern, ϕ_tuple, idx_to_dim
+export ϕ_tuple, idx_to_dim
 
 
 """
@@ -21,7 +21,7 @@ Arguments:
 ## conversion_tools.jl
 
 """
-    idx_to_dim(idx_arr)  # this should be a view
+    idx_to_dim(idx_arr) 
 
 Converts an N-dimensional array of NTuple to an N+1 dimensional array by orienting the (inner) tuple along the (outer) trailing+1 dimension.
 
@@ -41,7 +41,7 @@ julia> idx_to_dim([(x,y) for x in 1:3, y in 1:3])
  1  2  3
  1  2  3
  1  2  3
- ```
+```
 """
 function idx_to_dim(idx_arr::AbstractArray{T, N}) where {T, N} 
     out_arr = Array{typeof(idx_arr[1][1])}(undef, size(idx_arr)..., length(idx_arr[begin]))
