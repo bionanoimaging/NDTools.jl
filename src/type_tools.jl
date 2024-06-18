@@ -59,13 +59,13 @@ end
  
 
 """
-    similar_arr_type(::Type{TA}) where {TA<:AbstractArray}
+    similar_arr_type(::Type{TA}; dims=N, dtype=T) where {TA<:AbstractArray}
 
 returns a similar array type but using as TA, but eltype and ndims can be changed.
 
 # Arguments
 + `TA`:     The array type to convert to an eltype of `complex(eltype(TA))`
-+ `dims`:   The number of dimensions of the returned array type
++ `dims`:   The number of dimensions of the returned array type. Please specify this as a ::Val type to be type-stable. Default is Val(1).
 + `dtype`:  The `eltype()` of the returned array type.
 
 # Example
@@ -81,10 +81,24 @@ julia> similar_arr_type(Array{ComplexF64,3}, dims=2, dtype=Int)
 Matrix{Int64} (alias for Array{Int64, 2})
 ```
 """
-function similar_arr_type(::Type{TA}; dims=N, dtype=T) where {T,N, TA<:AbstractArray{T,N}}
+function similar_arr_type(::Type{TA}; dims=N, dtype=T) where {T, N, TA<:AbstractArray{T,N}}
     typeof(similar(TA(undef, ntuple(x->0, N)), dtype, ntuple(x->0, dims)))
 end
- 
-function similar_arr_type(::Type{TA}; dims=1, dtype=eltype(TA)) where {TA<:AbstractArray}
+
+function similar_arr_type(::Type{TA}; dims=N, dtype=T) where {T, N, P, I, L, TA<:SubArray{T,N,P,I,L}}
+    similar_arr_type(P, dims=dims, dtype=dtype)
+end
+
+function similar_arr_type(::Type{TA}; dims=N, dtype=T) where {T, N, P, MI, TA<:Base.ReshapedArray{T,N,P,MI}}
+    similar_arr_type(P, dims=dims, dtype=dtype)
+end
+
+# note that T refers to the new type (if not explicitely specified) and therefore replaces the eltype of the array as defined by P
+function similar_arr_type(::Type{TA}; dims=N, dtype=T) where {T, N, O, P, B, TA<:Base.ReinterpretArray{T,N,O,P,B}}
+    similar_arr_type(P, dims=dims, dtype=dtype)
+end
+
+function similar_arr_type(::Type{TA}; dims=Val(1), dtype=eltype(TA)) where {TA<:AbstractArray}
     typeof(similar(TA(undef), dtype, ntuple(x->0, dims)))
 end
+
