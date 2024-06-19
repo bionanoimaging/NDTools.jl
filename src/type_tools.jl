@@ -1,12 +1,12 @@
 export real_arr_type, complex_arr_type, similar_arr_type
 
 """
-    real_arr_type(::Type{TA}) where {TA<:AbstractArray}
+    real_arr_type(::Type{TA}, dims::Val = Val(N)) where {TA<:AbstractArray}
 
 returns the same array type but using `(real(eltype()))` as the element type
 # Arguments
 + `TA`:     The array type to convert to an eltype of `real(eltype(TA))`
-+ `dims`:   The number of dimensions of the returned array type
++ `dims`:   The (optional) number of dimensions of the returned array type, default is Val(N) or Val(1) depending on whether the dimensions of the array are inferrable
 
 # Example
 ```jldoctest
@@ -16,7 +16,7 @@ Vector{Float64} (alias for Array{Float64, 1})
 julia> real_arr_type(Array{ComplexF64,3})
 Array{Float64, 3}
 
-julia> real_arr_type(Array{ComplexF64,3}, dims=4)
+julia> real_arr_type(Array{ComplexF64,3}, dims=Val(4))
 Array{Float64, 4}
 ```
 """
@@ -29,13 +29,13 @@ function real_arr_type(::Type{TA}, dims::Val=Val(1)) where {TA<:AbstractArray}
 end
 
 """
-    complex_arr_type(::Type{TA}) where {TA<:AbstractArray}
+    complex_arr_type(::Type{TA}, dims::Val = VLa(N)) where {TA<:AbstractArray}
 
-returns the same array type but using `(complex(eltype()))` as the element type
+returns the same array type but using `(complex(eltype()))` as the element type, default is Val(N) or Val(1) depending on whether the dimensions of the array are inferrable
 
 # Arguments
 + `TA`:     The array type to convert to an eltype of `complex(eltype(TA))`
-+ `dims`:   The number of dimensions of the returned array type
++ `dims`:   The (optional) number of dimensions of the returned array type
 
 # Example
 ```jldoctest
@@ -45,7 +45,7 @@ Vector{ComplexF32} (alias for Array{Complex{Float32}, 1})
 julia> complex_arr_type(Array{Float32,3})
 Array{ComplexF32, 3}
 
-julia> complex_arr_type(Array{Float32,3},dims=1)
+julia> complex_arr_type(Array{Float32,3}, dims=Val(1))
 Vector{ComplexF32} (alias for Array{Complex{Float32}, 1})
 ```
 """
