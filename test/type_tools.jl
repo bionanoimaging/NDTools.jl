@@ -1,10 +1,10 @@
 @testset "Test Type Tools" begin
     sz = (11,12)
     @test real_arr_type(Array{Float32,2}) == Matrix{Float32}
-    @test complex_arr_type(Array{Float32,1}, dims=Val(2)) == Matrix{ComplexF32}
-    @test real_arr_type(Array{Float32}, dims=Val(2)) == Matrix{Float32}
-    @test complex_arr_type(Array{Float32}, dims=Val(2)) == Matrix{ComplexF32}
-    @test real_arr_type(Array{ComplexF64,2}, dims=Val(1)) == Vector{Float64}
+    @test complex_arr_type(Array{Float32,1}, Val(2)) == Matrix{ComplexF32}
+    @test real_arr_type(Array{Float32}, Val(2)) == Matrix{Float32}
+    @test complex_arr_type(Array{Float32}, Val(2)) == Matrix{ComplexF32}
+    @test real_arr_type(Array{ComplexF64,2}, Val(1)) == Vector{Float64}
     @test complex_arr_type(Array{ComplexF64,1}) == Vector{ComplexF64}
 
     @test similar_arr_type(Array{ComplexF64,1}, Int, Val(2)) == Matrix{Int}

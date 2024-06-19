@@ -20,11 +20,11 @@ julia> real_arr_type(Array{ComplexF64,3}, dims=4)
 Array{Float64, 4}
 ```
 """
-function real_arr_type(::Type{TA}; dims::Val=Val(N)) where {T,N, TA<:AbstractArray{T,N}}
+function real_arr_type(::Type{TA}, dims::Val=Val(N)) where {T,N, TA<:AbstractArray{T,N}}
     similar_arr_type(TA, real(eltype(TA)), dims)
 end
 
-function real_arr_type(::Type{TA}; dims::Val=Val(1)) where {TA<:AbstractArray}
+function real_arr_type(::Type{TA}, dims::Val=Val(1)) where {TA<:AbstractArray}
     similar_arr_type(TA, real(eltype(TA)), dims)
 end
 
@@ -49,11 +49,11 @@ julia> complex_arr_type(Array{Float32,3},dims=1)
 Vector{ComplexF32} (alias for Array{Complex{Float32}, 1})
 ```
 """
-function complex_arr_type(::Type{TA}; dims::Val=Val(N)) where {T,N, TA<:AbstractArray{T,N}}
+function complex_arr_type(::Type{TA}, dims::Val=Val(N)) where {T,N, TA<:AbstractArray{T,N}}
     similar_arr_type(TA, complex(eltype(TA)), dims)
 end
 
-function complex_arr_type(::Type{TA}; dims::Val=Val(1)) where {TA<:AbstractArray}
+function complex_arr_type(::Type{TA}, dims::Val=Val(1)) where {TA<:AbstractArray}
     similar_arr_type(TA, complex(eltype(TA)), dims)
 end
  
