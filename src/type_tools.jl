@@ -45,7 +45,7 @@ Vector{ComplexF32} (alias for Array{Complex{Float32}, 1})
 julia> complex_arr_type(Array{Float32,3})
 Array{ComplexF32, 3}
 
-julia> complex_arr_type(Array{Float32,3}, dims=Val(1))
+julia> complex_arr_type(Array{Float32,3}, Val(1))
 Vector{ComplexF32} (alias for Array{Complex{Float32}, 1})
 ```
 """
