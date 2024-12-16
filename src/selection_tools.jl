@@ -5,7 +5,7 @@ export slice
 """
     slice(arr, dim, index)
 
-Return a `N` dimensional slice (where one dimensions has size 1) of the N-dimensional `arr` at the index position
+Return a `N` dimensional slice view (where one dimensions has size 1) of the N-dimensional `arr` at the index position (or range)
 `index` in the `dim` dimension of the array.
 It holds `size(out)[dim] == 1`.
 
@@ -22,7 +22,7 @@ julia> NDTools.slice(x, 1, 1)
  1  2  3
 ```
 """
-function slice(arr::AbstractArray{T, N}, dim::Integer, index::Integer) where {T, N}
+function slice(arr::AbstractArray{T, N}, dim::Integer, index::Union{Integer, UnitRange}) where {T, N}
     inds = slice_indices(axes(arr), dim, index)
     return @view arr[inds...]
 end
@@ -33,6 +33,9 @@ end
  # Arguments:
 `a` should be the axes obtained by `axes(arr)` of an array.
 `dim` is the dimension to be selected and `index` the index of it.
+`index` can be an integer or a range,but the dimensions is always kepts
+
+ # Returns: a tuple of ranges used for slicing
 
 Examples
 ```jldoctest
@@ -43,6 +46,12 @@ julia> NDTools.slice_indices((1:10, 1:20, 1:12, 1:33), 1, 3)
 function slice_indices(a::NTuple{N, T}, dim::Integer, index::Integer) where {T, N}
     inds = ntuple(i -> i == dim ? (a[i][index]:a[i][index])
                                 : (first(a[i]):last(a[i])), 
+                  Val(N))
+    return inds
+end
+
+function slice_indices(a::NTuple{N, T}, dim::Integer, index::UnitRange) where {T, N}
+    inds = ntuple(i -> i == dim ? (a[i][index]) : (first(a[i]):last(a[i])), 
                   Val(N))
     return inds
 end

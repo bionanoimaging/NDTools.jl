@@ -8,6 +8,11 @@
         x = randn((5,2,3,4))
         y = NDTools.slice(x, 1, 4)
         @test x[4:4, :, :, :] == y
+        y = NDTools.slice(x, 1, 2:3)
+        @test x[2:3, :, :, :] == y
+        y = NDTools.slice(x, 4, 4:4)
+        @test x[:, :, :, 4:4] == y
+
 
         x = randn((5))
         y = NDTools.slice(x, 1, 5)
