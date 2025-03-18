@@ -1,6 +1,5 @@
 ## generation_tools.jl
-export ϕ_tuple, idx_to_dim, dim_to_idx, idx_to_arr_view, arr_to_idx_view
-
+export ϕ_tuple, idx_to_dim 
 
 """
     ϕ_tuple(t::NTuple)
@@ -21,6 +20,7 @@ Arguments:
     idx_to_dim(idx_arr) 
 
 Converts an N-dimensional array of NTuple to an N+1 dimensional array by orienting the (inner) tuple along the (outer) trailing+1 dimension.
+Note that this function is not type stable!
 
 See also: `idx_to_view` which reinterprets the array to an N+1 dimensional array by unrolling the (inner) tuple.
 Arguments:
@@ -49,6 +49,7 @@ end
 """
     dim_to_idx(v) 
 converts an Array to an Array of Tuples by packaging the outer dimension into the inner dimension of the new array.
+Note that this function is not type stable!
 
 See also: `idx_to_dim` which is tarr_to_arr
 
@@ -70,6 +71,7 @@ end
     idx_to_arr_view(idx_arr) 
 
 Reinterprets an N-dimensional array of NTuple (idx_arr) as an N+1 dimensional array by unrolling the (inner) tuple.
+Note that this function is not type stable!
 
 See also: `arr_to_idx_view`
 
@@ -101,6 +103,7 @@ end
     arr_to_idx_view(arr) 
 
 Reinterprets an N-dimensional array as a N-1 dimensional array rolling the (inner) into a tuple.
+Note that this function is not type stable!
 
 See also: `idx_to_arr_view`
 
@@ -115,6 +118,6 @@ julia> arr_to_idx_view([x for x in 1:3, y in 1:2])
  (1, 2, 3)
 ```
 """
-function arr_to_idx_view(arr::AbstractArray{T, N}) where {T,N}     
+function arr_to_idx_view(arr::AbstractArray{T, N}) where {T,N}
     reinterpret(reshape, NTuple{size(arr, 1), T}, arr)
 end
