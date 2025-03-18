@@ -64,6 +64,7 @@ end
     mat_to_tvec(v) 
 converts a 2d matrix to a Vector of Tuples
 
+See also: `arr_to_idx_view` returning a view and `dim_to_idx` which uses the outermost dimension 
 Example:
 ```jldoctest
 julia> NDTools.mat_to_tvec([1 3 5; 2 4 6])
@@ -73,7 +74,7 @@ julia> NDTools.mat_to_tvec([1 3 5; 2 4 6])
  (5, 6)
 ```
 """
-mat_to_tvec(v) = [Tuple(v[:,n]) for n in 1:size(v,2)] # converts a 2d matrix to a Vector of Tuples
+mat_to_tvec(v::AbstractMatrix) = copy(arr_to_idx_view(v)) # converts a 2d matrix to a Vector of Tuples
 
 """
     apply_dims(scale, dims, N)

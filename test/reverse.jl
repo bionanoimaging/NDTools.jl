@@ -1,7 +1,7 @@
 
 @testset "reverse_view" begin
 
-    a = randn((3,4,3,5))    
+    a = opt_cu(randn((3,4,3,5)))
     f(a, dims) = @test reverse(a, dims=dims) == reverse_view(a, dims=dims)
 
     @test reverse(a) == reverse_view(a)

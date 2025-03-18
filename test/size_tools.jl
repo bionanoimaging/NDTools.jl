@@ -15,9 +15,11 @@ end
 end
 
 @testset "Test select_sizes" begin
-    @test (1, 3, 2) == select_sizes(randn((4,3,2)), (2,3))
-    @test (1, 3, 1) == select_sizes(randn((4,3,2)), 2)
-    @test (3, 2) == select_sizes_squeeze(randn((4,3,2)), (2,3))
+    x = opt_cu(randn((4,3,2)))
+    @test (1, 3, 2) == select_sizes(x, (2,3))
+    @test (1, 3, 1) == select_sizes(x, 2)
+    @test (3, 2) == select_sizes_squeeze(x, (2,3))
+    y = opt_cu(randn((1,)))
     @test (1, ) == select_sizes_squeeze(randn((1,)), (1,))
     @test (1, ) == select_sizes_squeeze(randn((1,)), 1)
 end
@@ -25,12 +27,12 @@ end
 @testset "Test single_dim_size" begin
     @test single_dim_size(Val(2), 5) == (1, 5)
     @test single_dim_size(3,5, Val(4)) == (1, 1, 5, 1)
-
 end
 
 @testset "Test reorient" begin
-    @test size(reorient([1,2,3,4], Val(3))) == (1,1,4)
-    @test size(reorient([1,2,3,4], 3, Val(4))) == (1,1,4,1)
+    x = opt_cu([1,2,3,4])
+    @test size(reorient(x, Val(3))) == (1,1,4)
+    @test size(reorient(x, 3, Val(4))) == (1,1,4,1)
 end
 
 
