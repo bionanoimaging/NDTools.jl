@@ -47,9 +47,8 @@ function idx_to_dim(idx_arr::AbstractArray{T, N}) where {TT, NT, T<:NTuple{NT, T
 end
 
 """
-    dim_to_idx(v) 
+    dim_to_idx(v, ::Val{D}) where D 
 converts an Array to an Array of Tuples by packaging the outer dimension into the inner dimension of the new array.
-Note that this function is not type stable!
 
 See also: `idx_to_dim` which is tarr_to_arr
 
@@ -62,7 +61,7 @@ julia> NDTools.arr_to_tarr([1 3 5; 2 4 6])
  (5, 6)
 ```
 """
-function dim_to_idx(v, ::Val{D}=Val(size(v, ndims(v)))) where D
+function dim_to_idx(v, ::Val{D}) where D
     newdims = ntuple((d)->mod(d-2, ndims(v))+1, ndims(v))
     return arr_to_idx_view(permutedims(v, newdims), Val(D))
 end
@@ -100,10 +99,9 @@ function idx_to_arr_view(idx_arr::AbstractArray{T, N}) where {TT, NT, T<:NTuple{
 end
 
 """
-    arr_to_idx_view(arr, ::Val{N}) where N 
+    arr_to_idx_view(arr, ::Val{D}) where D 
 
 Reinterprets an N-dimensional array as a N-1 dimensional array rolling the (inner) into a tuple.
-Note that this function is only type stable, if the dimension argument D is specified (e.g. Val(3))!
 
 See also: `idx_to_arr_view`
 
@@ -119,6 +117,6 @@ julia> arr_to_idx_view([x for x in 1:3, y in 1:2], Val(3))
  (1, 2, 3)
 ```
 """
-function arr_to_idx_view(arr::AbstractArray{T, N}, ::Val{D}=Val(size(arr, 1))) where {T,N, D}
+function arr_to_idx_view(arr::AbstractArray{T, N}, ::Val{D}) where {T,N, D}
     reinterpret(reshape, NTuple{D, T}, arr)
 end

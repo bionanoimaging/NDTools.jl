@@ -28,7 +28,7 @@ end
 end
 
 @testset "Test mat_to_tvec" begin
-    @test NDTools.mat_to_tvec([1 3 5; 2 4 6]) == [(1,2),(3,4),(5,6)]
+    @test NDTools.mat_to_tvec([1 3 5; 2 4 6], Val(2)) == [(1,2),(3,4),(5,6)]
 end
 
 @testset "Test apply_dims" begin
