@@ -62,9 +62,9 @@ julia> NDTools.arr_to_tarr([1 3 5; 2 4 6])
  (5, 6)
 ```
 """
-function dim_to_idx(v)
+function dim_to_idx(v, ::Val{D}=Val(size(v, ndims(v)))) where D
     newdims = ntuple((d)->mod(d-2, ndims(v))+1, ndims(v))
-    return arr_to_idx_view(permutedims(v, newdims))
+    return arr_to_idx_view(permutedims(v, newdims), Val(D))
 end
 
 """
@@ -100,24 +100,25 @@ function idx_to_arr_view(idx_arr::AbstractArray{T, N}) where {TT, NT, T<:NTuple{
 end
 
 """
-    arr_to_idx_view(arr) 
+    arr_to_idx_view(arr, ::Val{N}) where N 
 
 Reinterprets an N-dimensional array as a N-1 dimensional array rolling the (inner) into a tuple.
-Note that this function is not type stable!
+Note that this function is only type stable, if the dimension argument D is specified (e.g. Val(3))!
 
 See also: `idx_to_arr_view`
 
 Arguments:
 + `arr`. The array to reinterpret
++ `D`. The Val type specifying the Tuple Length of the resulting array corresponding to the outermost dimension size
 
 Example:
 ```jldoctest
-julia> arr_to_idx_view([x for x in 1:3, y in 1:2])
+julia> arr_to_idx_view([x for x in 1:3, y in 1:2], Val(3))
 2-element reinterpret(reshape, Tuple{Int64, Int64, Int64}, ::Matrix{Int64}) with eltype Tuple{Int64, Int64, Int64}:
  (1, 2, 3)
  (1, 2, 3)
 ```
 """
-function arr_to_idx_view(arr::AbstractArray{T, N}) where {T,N}
-    reinterpret(reshape, NTuple{size(arr, 1), T}, arr)
+function arr_to_idx_view(arr::AbstractArray{T, N}, ::Val{D}=Val(size(arr, 1))) where {T,N, D}
+    reinterpret(reshape, NTuple{D, T}, arr)
 end
