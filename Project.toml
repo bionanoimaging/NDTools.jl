@@ -1,7 +1,7 @@
 name = "NDTools"
 uuid = "98581153-e998-4eef-8d0d-5ec2c052313d"
 authors = ["Rainer Heintzmann <heintzmann@gmail.com>", "Felix Wechsler <fxw+git@mailbox.org>"]
-version = "0.8.0"
+version = "0.8.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -10,7 +10,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-MutableShiftedArrays = "0.2.0"
+MutableShiftedArrays = "0.2, 0.3"
 julia = "1, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11"
 
 [extras]
