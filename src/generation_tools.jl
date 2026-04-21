@@ -41,7 +41,7 @@ julia> idx_to_dim([(x,y) for x in 1:3, y in 1:3])
  1  2  3
 ```
 """
-function idx_to_dim(idx_arr::AbstractArray{T, N}) where {TT, NT, T<:NTuple{NT, TT}, N} 
+function idx_to_dim(idx_arr::AbstractArray{T, N})::AbstractArray{TT, N+1} where {TT, NT, T<:NTuple{NT, TT}, N} 
     newdims = ntuple((d)->mod(d, N+1)+1, N+1)
     return permutedims(idx_to_arr_view(idx_arr), newdims)
 end
@@ -67,10 +67,25 @@ function dim_to_idx(v, ::Val{D}) where D
 end
 
 """
+    ensure_dims(arr, ndims)
+
+is like expand_dims but appends the dimensions at the front. It inserts dimensions at the front (innermost dimension) to ensure the
+total number of dimensions matches. 
+"""
+function ensure_dims(arr::AbstractArray{T, N}, ::Val{N})::AbstractArray{T, N} where {T, N}
+    arr
+end
+
+function ensure_dims(arr::AbstractArray{T, N}, ::Val{M})::AbstractArray{T, M} where {T, N, M}
+    newsize = ntuple((d)-> (d<=M-N) ? 1 : size(arr, d-(M-N)), M)
+    reshape(arr, newsize)
+end
+
+"""
     idx_to_arr_view(idx_arr) 
 
 Reinterprets an N-dimensional array of NTuple (idx_arr) as an N+1 dimensional array by unrolling the (inner) tuple.
-Note that this function is not type stable!
+The output is guaranteed to be N+1 dimensional, even if the inner tuple is of length 1.
 
 See also: `arr_to_idx_view`
 
@@ -94,8 +109,10 @@ julia> idx_to_arr_view([(x,y) for x in 1:3, y in 1:3])
  3  3  3
 ```
 """
-function idx_to_arr_view(idx_arr::AbstractArray{T, N}) where {TT, NT, T<:NTuple{NT, TT}, N} 
-    reinterpret(reshape, TT, idx_arr)
+function idx_to_arr_view(idx_arr::AbstractArray{T, N})::AbstractArray{TT, N+1} where {TT, NT, T<:NTuple{NT, TT}, N} 
+    # the expand_dims is necessary to also treat Arrays of Tuple of length 
+    # reinterpret(reshape, TT, idx_arr)
+    ensure_dims(reinterpret(reshape, TT, idx_arr), Val(N+1))
 end
 
 """
@@ -117,6 +134,6 @@ julia> arr_to_idx_view([x for x in 1:3, y in 1:2], Val(3))
  (1, 2, 3)
 ```
 """
-function arr_to_idx_view(arr::AbstractArray{T, N}, ::Val{D}) where {T,N, D}
+function arr_to_idx_view(arr::AbstractArray{T, N}, ::Val{D})::AbstractArray{NTuple{D, T}, N-1} where {T,N, D}
     reinterpret(reshape, NTuple{D, T}, arr)
 end
